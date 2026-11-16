@@ -254,6 +254,7 @@
   input[type="search"] { width: 190px; }
   input[type="number"] { width: 92px; }
   input[type="number"]:disabled { opacity: 0.4; }
+  select:disabled { opacity: 0.45; }
   input::placeholder { color: var(--text-muted); }
   .range-row { display: flex; align-items: center; gap: 5px; }
   .range-row span { color: var(--text-muted); font-size: 12px; }
@@ -685,6 +686,9 @@
         <select id="sortKey"></select>
       </label>
       <button class="btn" id="sortDirBtn" type="button">升序 ▲</button>
+      <label class="filter-label" for="resSortKey" style="display:flex;align-items:center;gap:6px">资源排序
+        <select id="resSortKey"></select>
+      </label>
       <label class="filter-label" for="pageSize" style="display:flex;align-items:center;gap:6px">每页
         <select id="pageSize">
           <option value="25">25</option>
@@ -844,6 +848,7 @@
     },
     openRes: new Set(),
     sortKey: "seq",
+    lastBaseSortKey: "seq",
     sortDir: "asc",
     page: 0,
     pageSize: 50
@@ -1244,6 +1249,7 @@
     setupSearchScopes(view);
     if (view === "world") {
       state.sortKey = "label";
+      state.lastBaseSortKey = "label";
       state.sortDir = "asc";
       refreshWorldOptions();
       computeWorldDomains();
@@ -1254,6 +1260,7 @@
         "每个存档天体一行 · 点击表头排序 · 点击资源展开明细 · 点击行查看详情";
     } else {
       state.sortKey = "seq";
+      state.lastBaseSortKey = "seq";
       state.sortDir = "asc";
       refreshOptions();
       computeDomains();
@@ -1335,6 +1342,15 @@
     $("#resetBtn").addEventListener("click", resetFilters);
     $("#sortKey").addEventListener("change", e => {
       state.sortKey = e.target.value;
+      state.lastBaseSortKey = e.target.value;
+      state.page = 0;
+      updateSortMarks();
+      renderActiveTable();
+    });
+    $("#resSortKey").addEventListener("change", e => {
+      const m = e.target.value;
+      if (m) state.sortKey = "mat:" + m;
+      else state.sortKey = state.lastBaseSortKey;
       state.page = 0;
       updateSortMarks();
       renderActiveTable();
@@ -2115,19 +2131,34 @@
     sel.textContent = "";
     base.forEach(([value, label]) =>
       sel.appendChild(elem("option", { value }, label)));
-    if (mats.size) {
-      const group = elem("optgroup", { label: "按单个资源" });
+
+    const resSel = $("#resSortKey");
+    if (resSel) {
+      resSel.textContent = "";
+      resSel.appendChild(elem("option", { value: "" }, "不按资源排序"));
       Array.from(mats).sort().forEach(m => {
-        group.appendChild(elem("option", { value: "mat:" + m },
+        resSel.appendChild(elem("option", { value: m },
           "资源：" + zh(MATERIAL_ZH, m)));
       });
-      sel.appendChild(group);
     }
 
-    const validMat = state.sortKey.startsWith("mat:") && mats.has(state.sortKey.slice(4));
-    if (!validMat && !base.some(([value]) => value === state.sortKey))
+    const matKey = state.sortKey.startsWith("mat:") ? state.sortKey.slice(4) : "";
+    const validMat = matKey && mats.has(matKey);
+    if (matKey && !validMat) {
       state.sortKey = base[0][0];
-    sel.value = state.sortKey;
+      state.lastBaseSortKey = state.sortKey;
+    }
+    if (!matKey) {
+      if (!base.some(([value]) => value === state.sortKey))
+        state.sortKey = base[0][0];
+      state.lastBaseSortKey = state.sortKey;
+    } else if (!base.some(([value]) => value === state.lastBaseSortKey)) {
+      state.lastBaseSortKey = base[0][0];
+    }
+
+    sel.value = validMat ? state.lastBaseSortKey : state.sortKey;
+    if (resSel) resSel.value = validMat ? matKey : "";
+    sel.disabled = !!validMat;
   }
 
   function sortValueWorld(w, key) {
@@ -2181,6 +2212,7 @@
       b.addEventListener("click", () => {
         if (state.sortKey === c.key) state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
         else { state.sortKey = c.key; state.sortDir = "asc"; }
+        state.lastBaseSortKey = state.sortKey;
         updateSortMarks();
         renderActiveTable();
       });
@@ -2203,8 +2235,14 @@
       if (c.key === state.sortKey) th.setAttribute("data-sort", state.sortDir);
       else th.removeAttribute("data-sort");
     });
+    const matKey = state.sortKey.startsWith("mat:") ? state.sortKey.slice(4) : "";
     const sel = $("#sortKey");
-    if (sel) sel.value = state.sortKey;
+    if (sel) {
+      sel.disabled = !!matKey;
+      if (!matKey) sel.value = state.sortKey;
+    }
+    const resSel = $("#resSortKey");
+    if (resSel) resSel.value = matKey;
     const dir = $("#sortDirBtn");
     if (dir) dir.textContent = state.sortDir === "asc" ? "升序 ▲" : "降序 ▼";
   }
