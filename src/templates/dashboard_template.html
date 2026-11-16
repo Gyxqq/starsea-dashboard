@@ -100,6 +100,18 @@
     border-bottom: 1px solid var(--border);
   }
   .brand { display: flex; flex-direction: column; gap: 1px; }
+  .view-switch {
+    display: flex; align-items: center; gap: 2px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 9px; padding: 2px;
+  }
+  .view-btn {
+    appearance: none; border: 0; background: none; color: var(--text-muted);
+    font: inherit; font-size: 12px; padding: 4px 10px; border-radius: 7px; cursor: pointer;
+    white-space: nowrap;
+  }
+  .view-btn:hover { color: var(--text-primary); }
+  .view-btn.active { background: var(--surface-1); color: var(--text-primary); box-shadow: var(--shadow); }
   .brand-title { font-size: 15px; font-weight: 650; letter-spacing: 0.01em; }
   .brand-sub { font-size: 11.5px; color: var(--text-muted); }
   .topbar-spacer { flex: 1; }
@@ -138,13 +150,80 @@
   .stat-value { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; }
   .stat-sub { font-size: 11px; color: var(--text-muted); }
 
+  .workspace { display: block; }
+  .workspace-main { min-width: 0; }
+  body[data-view="archive"] .world-only { display: none !important; }
+  body[data-view="world"] .archive-only { display: none !important; }
   .filters {
     background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px;
     padding: 14px 16px; box-shadow: var(--shadow); margin-bottom: 16px;
-    display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px;
+    display: flex; flex-direction: column; gap: 14px;
   }
+  .filter-lists {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px 18px; align-items: start;
+  }
+  .filter-ranges { display: flex; flex-wrap: wrap; gap: 14px 18px; align-items: flex-start; }
+  .filter-ranges .filter-group { flex: 1 1 190px; max-width: 280px; }
   .filter-group { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
   .filter-group > label, .filter-label { font-size: 10.5px; color: var(--text-muted); letter-spacing: 0.06em; }
+  .filter-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .filter-hint { font-size: 11px; color: var(--text-muted); line-height: 1.45; }
+  .filter-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+  .invert-btn {
+    appearance: none; border: 0; background: none; padding: 0;
+    color: var(--accent); font: inherit; font-size: 11px; cursor: pointer;
+  }
+  .invert-btn:hover { text-decoration: underline; }
+  .invert-btn:disabled { opacity: 0.35; cursor: default; text-decoration: none; }
+  .check-list {
+    display: flex; flex-direction: column; gap: 1px;
+    max-height: 168px; overflow: auto; padding-right: 4px;
+  }
+  .check-row {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-secondary); cursor: pointer;
+    padding: 2px 0; line-height: 1.3;
+  }
+  .check-row:hover { color: var(--text-primary); }
+  .check-row .check-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .check-row .check-count { margin-left: auto; font-size: 10.5px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .check-empty { font-size: 11.5px; color: var(--text-muted); padding: 2px 0; }
+  .switch { position: relative; width: 30px; height: 17px; flex: 0 0 auto; display: inline-block; }
+  .switch input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; margin: 0; cursor: pointer; }
+  .switch-track {
+    display: block; position: relative; width: 30px; height: 17px; border-radius: 999px;
+    background: var(--border); transition: background 0.15s;
+  }
+  .switch-track::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px;
+    border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    transition: transform 0.15s;
+  }
+  .switch input:checked + .switch-track { background: var(--accent); }
+  .switch input:checked + .switch-track::after { transform: translateX(13px); }
+  .switch input:focus-visible + .switch-track { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .filters select, .filters input[type="search"] { width: 100%; }
+  .filters .range-row { flex-wrap: wrap; }
+  .filters .range-row select { width: auto; flex: 1 1 72px; min-width: 0; }
+  .filters .range-row input[type="number"] { width: 70px; }
+  .filter-ranges .metric-group { flex: 2 1 340px; max-width: 560px; }
+  .metric-rows { display: flex; flex-direction: column; gap: 6px; }
+  .metric-row { display: flex; align-items: center; gap: 5px; }
+  .metric-row select { width: auto; flex: 1 1 120px; min-width: 0; }
+  .metric-row input[type="number"] { width: 68px; }
+  .metric-dash { color: var(--text-muted); font-size: 12px; }
+  .metric-remove {
+    appearance: none; border: 0; background: none; padding: 0 2px;
+    color: var(--text-muted); font-size: 16px; line-height: 1; cursor: pointer;
+  }
+  .metric-remove:hover { color: var(--text-primary); }
+  .add-metric { align-self: flex-start; height: 26px; font-size: 11.5px; padding: 0 9px; }
+  .filter-actions .filter-note { margin-left: 0; }
+  @media (max-width: 900px) {
+    .filter-lists { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+    .check-list { max-height: 132px; }
+  }
   .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip {
     display: inline-flex; align-items: center; gap: 5px;
@@ -183,6 +262,7 @@
   .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
   .span-4 { grid-column: span 4; }
   .span-6 { grid-column: span 6; }
+  .span-8 { grid-column: span 8; }
   .span-12 { grid-column: span 12; }
   .card {
     background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px;
@@ -318,11 +398,15 @@
   }
 </style>
 </head>
-<body data-palette="#2a78d6,#eb6834,#1baf7a">
+<body data-palette="#2a78d6,#eb6834,#1baf7a" data-view="archive">
 <header class="topbar">
   <div class="brand">
     <div class="brand-title">星海档案 · 宇宙星海</div>
     <div class="brand-sub" id="brandSub">—</div>
+  </div>
+  <div class="view-switch" role="group" aria-label="数据视图">
+    <button type="button" class="view-btn active" data-view="archive">星海档案</button>
+    <button type="button" class="view-btn" data-view="world">存档天体</button>
   </div>
   <div class="topbar-spacer"></div>
   <span class="load-status" id="loadStatus"></span>
@@ -334,19 +418,22 @@
 <main>
   <section class="hero-band">
     <div class="hero-card">
-      <div class="hero-label">匹配档案</div>
+      <div class="hero-label" id="heroLabel">匹配档案</div>
       <div class="hero-value" id="heroValue">—</div>
       <div class="hero-sub" id="heroSub">—</div>
     </div>
     <div class="kpis">
-      <div class="stat"><div class="stat-label">奇迹档案</div><div class="stat-value" id="kpiWonder">—</div><div class="stat-sub">最高稀有度</div></div>
-      <div class="stat"><div class="stat-label">稀有及以上</div><div class="stat-value" id="kpiRare">—</div><div class="stat-sub">稀有 / 奇迹</div></div>
-      <div class="stat"><div class="stat-label">平均强度</div><div class="stat-value" id="kpiStrength">—</div><div class="stat-sub">每档案平均</div></div>
-      <div class="stat"><div class="stat-label">资源种类</div><div class="stat-value" id="kpiMats">—</div><div class="stat-sub">不同材料数</div></div>
+      <div class="stat"><div class="stat-label" id="kpiLabel1">奇迹档案</div><div class="stat-value" id="kpiWonder">—</div><div class="stat-sub" id="kpiSub1">最高稀有度</div></div>
+      <div class="stat"><div class="stat-label" id="kpiLabel2">稀有及以上</div><div class="stat-value" id="kpiRare">—</div><div class="stat-sub" id="kpiSub2">稀有 / 奇迹</div></div>
+      <div class="stat"><div class="stat-label" id="kpiLabel3">平均强度</div><div class="stat-value" id="kpiStrength">—</div><div class="stat-sub" id="kpiSub3">每档案平均</div></div>
+      <div class="stat"><div class="stat-label" id="kpiLabel4">资源种类</div><div class="stat-value" id="kpiMats">—</div><div class="stat-sub" id="kpiSub4">不同材料数</div></div>
     </div>
   </section>
 
-  <section class="filters" aria-label="筛选与排序条件">
+  <div class="workspace">
+  <aside class="filters" aria-label="筛选与排序条件">
+    <div class="filter-hint">不勾选 = 全部；每组可单独反选</div>
+    <div class="filter-lists">
     <div class="filter-group">
       <label for="searchField">搜索范围</label>
       <div class="range-row">
@@ -359,30 +446,82 @@
           <option value="world">天体编号</option>
           <option value="resource">资源</option>
         </select>
-        <input type="search" id="searchInput" placeholder="关键词">
       </div>
+      <input type="search" id="searchInput" placeholder="关键词">
     </div>
-    <div class="filter-group">
-      <label for="kindSelect">档案类型</label>
-      <select id="kindSelect"></select>
+    <div class="filter-group archive-only">
+      <div class="filter-head">
+        <span class="filter-label">档案类型</span>
+        <button class="invert-btn" type="button" data-invert="kinds">反选</button>
+      </div>
+      <div class="check-list" id="kindList"></div>
     </div>
-    <div class="filter-group">
-      <label for="raritySelect">稀有度</label>
-      <select id="raritySelect"></select>
+    <div class="filter-group archive-only">
+      <div class="filter-head">
+        <span class="filter-label">稀有度</span>
+        <button class="invert-btn" type="button" data-invert="rarities">反选</button>
+      </div>
+      <div class="check-list" id="rarityList"></div>
     </div>
-    <div class="filter-group">
-      <label for="wtypeSelect">天体类型</label>
-      <select id="wtypeSelect"></select>
+    <div class="filter-group archive-only">
+      <div class="filter-head">
+        <span class="filter-label">天体类型</span>
+        <button class="invert-btn" type="button" data-invert="wtypes">反选</button>
+      </div>
+      <div class="check-list" id="wtypeList"></div>
     </div>
-    <div class="filter-group">
-      <label for="resourceSelect">资源</label>
-      <select id="resourceSelect"></select>
+    <div class="filter-group archive-only">
+      <div class="filter-head">
+        <span class="filter-label">资源</span>
+        <button class="invert-btn" type="button" data-invert="resources">反选</button>
+      </div>
+      <div class="check-list" id="resourceList"></div>
     </div>
-    <div class="filter-group">
-      <label for="systemSelect">星系类型</label>
-      <select id="systemSelect"></select>
+    <div class="filter-group archive-only">
+      <div class="filter-head">
+        <span class="filter-label">星系类型</span>
+        <button class="invert-btn" type="button" data-invert="systems">反选</button>
+      </div>
+      <div class="check-list" id="systemList"></div>
     </div>
-    <div class="filter-group">
+    <div class="filter-group world-only">
+      <div class="filter-head">
+        <span class="filter-label">天体类型</span>
+        <button class="invert-btn" type="button" data-invert="wf.wtypes">反选</button>
+      </div>
+      <div class="check-list" id="worldTypeList"></div>
+    </div>
+    <div class="filter-group world-only">
+      <div class="filter-head">
+        <span class="filter-label">环境</span>
+        <button class="invert-btn" type="button" data-invert="wf.envs">反选</button>
+      </div>
+      <div class="check-list" id="worldEnvList"></div>
+    </div>
+    <div class="filter-group world-only">
+      <div class="filter-head">
+        <span class="filter-label">星系类型</span>
+        <button class="invert-btn" type="button" data-invert="wf.systems">反选</button>
+      </div>
+      <div class="check-list" id="worldSystemList"></div>
+    </div>
+    <div class="filter-group world-only">
+      <div class="filter-head">
+        <span class="filter-label">恒星分类</span>
+        <button class="invert-btn" type="button" data-invert="wf.sclasses">反选</button>
+      </div>
+      <div class="check-list" id="worldSclassList"></div>
+    </div>
+    <div class="filter-group world-only">
+      <div class="filter-head">
+        <span class="filter-label">资源</span>
+        <button class="invert-btn" type="button" data-invert="wf.resources">反选</button>
+      </div>
+      <div class="check-list" id="worldResourceList"></div>
+    </div>
+    </div>
+    <div class="filter-ranges">
+    <div class="filter-group archive-only">
       <span class="filter-label">强度</span>
       <div class="range-row">
         <select id="strengthMin" aria-label="最小强度"></select>
@@ -390,7 +529,7 @@
         <select id="strengthMax" aria-label="最大强度"></select>
       </div>
     </div>
-    <div class="filter-group">
+    <div class="filter-group archive-only">
       <span class="filter-label">档案天体数</span>
       <div class="range-row">
         <select id="bodyMin" aria-label="最少天体数"></select>
@@ -398,20 +537,52 @@
         <select id="bodyMax" aria-label="最多天体数"></select>
       </div>
     </div>
-    <div class="filter-group">
-      <label for="metricSelect">指标范围</label>
+    <div class="filter-group metric-group archive-only">
+      <span class="filter-label">指标范围</span>
+      <div class="metric-rows" id="metricRows"></div>
+      <button class="btn add-metric" id="addMetric" type="button">+ 添加指标</button>
+    </div>
+    <div class="filter-group world-only">
+      <label for="worldDeploy">部署状态</label>
+      <select id="worldDeploy">
+        <option value="">全部</option>
+        <option value="true">已部署</option>
+        <option value="false">未部署</option>
+      </select>
+    </div>
+    <div class="filter-group world-only">
+      <span class="filter-label">规模（x）</span>
       <div class="range-row">
-        <select id="metricSelect"></select>
-        <input type="number" id="metricMin" placeholder="最小" step="any" disabled>
+        <input type="number" id="worldSizeMin" placeholder="最小" step="any">
         <span>–</span>
-        <input type="number" id="metricMax" placeholder="最大" step="any" disabled>
+        <input type="number" id="worldSizeMax" placeholder="最大" step="any">
       </div>
     </div>
-    <button class="btn" id="resetBtn" type="button">重置</button>
-    <div class="filter-note" id="matchInfo">—</div>
-  </section>
+    <div class="filter-group world-only">
+      <span class="filter-label">人口上限</span>
+      <div class="range-row">
+        <input type="number" id="worldPopMin" placeholder="最小" step="any">
+        <span>–</span>
+        <input type="number" id="worldPopMax" placeholder="最大" step="any">
+      </div>
+    </div>
+    <div class="filter-group world-only">
+      <span class="filter-label">宜居度</span>
+      <div class="range-row">
+        <input type="number" id="worldHabMin" placeholder="最小" step="any">
+        <span>–</span>
+        <input type="number" id="worldHabMax" placeholder="最大" step="any">
+      </div>
+    </div>
+    </div>
+    <div class="filter-actions">
+      <button class="btn" id="resetBtn" type="button">重置筛选</button>
+      <div class="filter-note" id="matchInfo">—</div>
+    </div>
+  </aside>
 
-  <section class="grid">
+  <div class="workspace-main">
+  <section class="grid archive-only">
     <div class="card span-4">
       <div class="card-head">
         <div><div class="card-title">类型构成</div><div class="card-sub">档案数量</div></div>
@@ -469,10 +640,46 @@
     </div>
   </section>
 
+  <section class="grid world-only">
+    <div class="card span-4">
+      <div class="card-head"><div><div class="card-title">天体类型构成</div><div class="card-sub">存档天体数量</div></div></div>
+      <div id="worldTypeChart"></div>
+    </div>
+    <div class="card span-4">
+      <div class="card-head"><div><div class="card-title">环境构成</div><div class="card-sub">存档天体数量</div></div></div>
+      <div id="worldEnvChart"></div>
+    </div>
+    <div class="card span-4">
+      <div class="card-head"><div><div class="card-title">部署状态</div><div class="card-sub">已部署 / 未部署</div></div></div>
+      <div id="worldDeployChart"></div>
+    </div>
+    <div class="card span-4">
+      <div class="card-head"><div><div class="card-title">恒星分类构成</div><div class="card-sub">按天体所在星系统计</div></div></div>
+      <div id="worldSclassChart"></div>
+    </div>
+    <div class="card span-8">
+      <div class="card-head">
+        <div><div class="card-title">规模（x） × 采矿速率</div><div class="card-sub">点色 = 部署状态；悬停查看数值，点击打开详情</div></div>
+        <div class="legend">
+          <span class="legend-item"><i class="dot kind-planet"></i>已部署</span>
+          <span class="legend-item"><i class="dot kind-star"></i>未部署</span>
+        </div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="worldScatterBase" class="scatter-base" role="img" aria-label="存档天体规模与采矿速率散点图"></canvas>
+        <canvas id="worldScatterOverlay" class="scatter-overlay"></canvas>
+      </div>
+    </div>
+    <div class="card span-12">
+      <div class="card-head"><div><div class="card-title">资源出现频次</div><div class="card-sub">当前筛选下包含该资源的天体数</div></div></div>
+      <div id="worldResourceChart"></div>
+    </div>
+  </section>
+
   <section class="card table-card">
     <div class="table-head-row">
-      <div class="card-title">档案表</div>
-      <div class="card-sub">每个档案一行 · 星系档案显示内含天体聚合值 · 点击表头排序 · 点击资源展开明细 · 点击行查看档案详情</div>
+      <div class="card-title" id="tableTitle">档案表</div>
+      <div class="card-sub" id="tableSub">每个档案一行 · 星系档案显示内含天体聚合值 · 点击表头排序 · 点击资源展开明细 · 点击行查看档案详情</div>
       <div class="topbar-spacer"></div>
       <label class="filter-label" for="pageSize" style="display:flex;align-items:center;gap:6px">每页
         <select id="pageSize">
@@ -496,6 +703,8 @@
       <button class="btn" id="nextPage" type="button">下一页</button>
     </div>
   </section>
+  </div>
+  </div>
 </main>
 
 <footer id="footer">—</footer>
@@ -523,6 +732,9 @@
   let META = D.meta;
   let MATERIALS = D.materials;
   let SYSTEMS = D.systems;
+  let WORLD_ROWS = D.worlds || [];
+  let WORLD_META = D.worldMeta || { worldCount: 0, systemCount: 0, deployedCount: 0, materialCount: 0 };
+  let filteredWorlds = [];
 
   const KIND_ORDER = ["planet", "star", "system"];
   const RARITY_ORDER = ["common", "uncommon", "rare", "wonder"];
@@ -561,13 +773,20 @@
     airless_surface: "无气表面", temperate_surface: "温带表面", metallic_surface: "金属表面",
     ocean_surface: "海洋表面", gas_atmosphere: "气体大气", frozen_surface: "冰冻表面",
     lava_surface: "熔岩表面", desert_surface: "荒漠表面", nebula_atmosphere: "星云大气",
-    neutron_orbit: "中子星轨道", black_hole_orbit: "黑洞轨道", ring_habitat: "环形居住带"
+    neutron_orbit: "中子星轨道", black_hole_orbit: "黑洞轨道", ring_habitat: "环形居住带",
+    ecology_basin: "生态盆地", metallic_frontier: "金属前沿"
+  };
+  const WORLD_SOURCE_ZH = {
+    world_seed: "世界种子", procedural_expansion: "程序化扩展",
+    cosmic_starsea: "星海放置", special: "特殊"
   };
   const WORLD_ZH = {
     airless_body: "无气天体", metallic_world: "金属世界", natural_habitat: "自然宜居世界",
     ocean_world: "海洋世界", gas_giant: "气态巨行星", ice_world: "冰冻世界",
     lava_world: "熔岩世界", desert_world: "荒漠世界", ecology_basin: "生态盆地",
-    nebula_platform: "星云平台", neutron_star: "中子星", black_hole: "黑洞"
+    nebula_platform: "星云平台", neutron_star: "中子星", black_hole: "黑洞",
+    mother_world: "母世界", ecology_target: "生态目标",
+    industrial_outpost: "工业前哨", gas_platform: "气态平台"
   };
   const MATERIAL_ZH = {
     carbon: "碳", copper_ore: "铜矿", metal: "金属", silica_ore: "硅矿", titanium_ore: "钛矿",
@@ -601,20 +820,24 @@
   };
 
   const state = {
+    view: "archive",
     q: "",
     searchField: "",
-    kind: "",
-    rarity: "",
-    wtype: "",
-    resource: "",
-    system: "",
+    kinds: new Set(),
+    rarities: new Set(),
+    wtypes: new Set(),
+    resources: new Set(),
+    systems: new Set(),
     strengthMin: "",
     strengthMax: "",
     bodyMin: "",
     bodyMax: "",
-    metric: "",
-    metricMin: "",
-    metricMax: "",
+    metricRanges: [{ metric: "", min: "", max: "" }],
+    wf: {
+      wtypes: new Set(), envs: new Set(), systems: new Set(),
+      sclasses: new Set(), resources: new Set(), deploy: "",
+      sizeMin: "", sizeMax: "", popMin: "", popMax: "", habMin: "", habMax: ""
+    },
     openRes: new Set(),
     sortKey: "seq",
     sortDir: "asc",
@@ -712,9 +935,6 @@
   }
 
   // ---------- filtering ----------
-  function metricValue(r) {
-    return state.metric ? METRICS[state.metric].value(r) : 0;
-  }
   function worldText(worlds) {
     return worlds.map(w => [
       w.label || "", w.wtype || "", w.env || "", w.bodyKind || "", w.site || "", w.canvas || "",
@@ -750,21 +970,61 @@
       const q = state.q.toLowerCase();
       if (!searchHaystack(r).toLowerCase().includes(q)) return false;
     }
-    if (state.kind && r.kind !== state.kind) return false;
-    if (state.rarity && r.rarity !== state.rarity) return false;
+    if (state.kinds.size && !state.kinds.has(r.kind)) return false;
+    if (state.rarities.size && !state.rarities.has(r.rarity)) return false;
     // 恒星档案的 worlds 只是星系预览，不是档案本体，不参与天体类型筛选
-    if (state.wtype && (r.kind === "star" || !r.worlds.some(w => w.wtype === state.wtype))) return false;
-    if (state.resource && !r.mats.includes(state.resource)) return false;
-    if (state.system && r.syskind !== state.system) return false;
+    if (state.wtypes.size &&
+        (r.kind === "star" || !r.worlds.some(w => state.wtypes.has(w.wtype)))) return false;
+    if (state.resources.size && !r.mats.some(m => state.resources.has(m))) return false;
+    if (state.systems.size && !state.systems.has(r.syskind)) return false;
     if (state.strengthMin !== "" && r.strength < +state.strengthMin) return false;
     if (state.strengthMax !== "" && r.strength > +state.strengthMax) return false;
     if (state.bodyMin !== "" && r.body < +state.bodyMin) return false;
     if (state.bodyMax !== "" && r.body > +state.bodyMax) return false;
-    if (state.metric) {
-      const v = metricValue(r);
-      if (state.metricMin !== "" && v < +state.metricMin) return false;
-      if (state.metricMax !== "" && v > +state.metricMax) return false;
+    for (const range of state.metricRanges) {
+      if (!range.metric) continue;
+      const v = METRICS[range.metric].value(r);
+      if (range.min !== "" && v < +range.min) return false;
+      if (range.max !== "" && v > +range.max) return false;
     }
+    return true;
+  }
+
+  // 存档天体（非星海）搜索与筛选
+  function searchWorldHaystack(w) {
+    const mats = w.mats.map(m => zh(MATERIAL_ZH, m)).join(" ");
+    const field = state.searchField;
+    if (field === "id") return w.id || "";
+    if (field === "label") return w.label || "";
+    if (field === "system") return (w.sysLabel || "") + " " + (w.systemId || "");
+    if (field === "wtype") return (w.wtype || "") + " " + zh(WORLD_ZH, w.wtype);
+    if (field === "env") return (w.env || "") + " " + zh(ENV_ZH, w.env);
+    if (field === "sclass") return (w.sclass || "") + " " + zh(STELLAR_ZH, w.sclass);
+    if (field === "resource") return w.mats.join(" ") + " " + mats;
+    return [w.id, w.label, w.wtype, w.env, w.bodyKind, w.systemId, w.sysLabel,
+      w.syskind, w.sclass, w.minePrimary, w.mats.join(" "), mats,
+      zh(WORLD_ZH, w.wtype), zh(ENV_ZH, w.env), zh(BODY_ZH, w.bodyKind),
+      zh(SYS_ZH, w.syskind), zh(STELLAR_ZH, w.sclass)]
+      .filter(Boolean).join(" ");
+  }
+
+  function matchesWorld(w) {
+    if (state.q &&
+        !searchWorldHaystack(w).toLowerCase().includes(state.q.toLowerCase())) return false;
+    const f = state.wf;
+    if (f.wtypes.size && !f.wtypes.has(w.wtype)) return false;
+    if (f.envs.size && !f.envs.has(w.env)) return false;
+    if (f.systems.size && !f.systems.has(w.syskind)) return false;
+    if (f.sclasses.size && !f.sclasses.has(w.sclass)) return false;
+    if (f.resources.size && !w.mats.some(m => f.resources.has(m))) return false;
+    if (f.deploy === "true" && !w.deployed) return false;
+    if (f.deploy === "false" && w.deployed) return false;
+    if (f.sizeMin !== "" && w.size / 1e4 < +f.sizeMin) return false;
+    if (f.sizeMax !== "" && w.size / 1e4 > +f.sizeMax) return false;
+    if (f.popMin !== "" && w.pop < +f.popMin) return false;
+    if (f.popMax !== "" && w.pop > +f.popMax) return false;
+    if (f.habMin !== "" && w.hab < +f.habMin) return false;
+    if (f.habMax !== "" && w.hab > +f.habMax) return false;
     return true;
   }
 
@@ -776,6 +1036,36 @@
       sel.appendChild(elem("option", { value: value }, label));
     });
     sel.value = current || "";
+  }
+
+  function fillCheckList(container, entries, selected) {
+    container.textContent = "";
+    entries.forEach(([value, label, count]) => {
+      const row = elem("label", { class: "check-row" });
+      row.appendChild(elem("span", { class: "check-label", title: label }, label));
+      if (count != null) row.appendChild(elem("span", { class: "check-count" }, fmt(count)));
+      const sw = elem("span", { class: "switch" });
+      const cb = elem("input", { type: "checkbox", value });
+      cb.checked = selected.has(value);
+      sw.appendChild(cb);
+      sw.appendChild(elem("span", { class: "switch-track" }));
+      row.appendChild(sw);
+      container.appendChild(row);
+    });
+    if (!entries.length)
+      container.appendChild(elem("div", { class: "check-empty" }, "暂无数据"));
+    const btn = container.closest(".filter-group").querySelector(".invert-btn");
+    if (btn) btn.disabled = !entries.length;
+  }
+
+  function bindCheckList(sel, set) {
+    $(sel).addEventListener("change", e => {
+      if (!e.target.matches('input[type="checkbox"]')) return;
+      if (e.target.checked) set.add(e.target.value);
+      else set.delete(e.target.value);
+      state.page = 0;
+      renderAll();
+    });
   }
 
   function worldTypeCounts() {
@@ -792,19 +1082,16 @@
   }
 
   function refreshOptions() {
-    fillSelect($("#kindSelect"), "全部档案类型",
-      KIND_ORDER.map(k => [k, KIND_LABEL[k] + "（" + fmt(META.kinds[k] || 0) + "）"]), state.kind);
-    fillSelect($("#raritySelect"), "全部稀有度",
-      RARITY_ORDER.map(k => [k, RARITY_LABEL[k] + "（" + fmt(META.rarities[k] || 0) + "）"]), state.rarity);
-    fillSelect($("#wtypeSelect"), "全部天体类型",
-      worldTypeCounts().map(([w, c]) => [w, zh(WORLD_ZH, w) + "（" + fmt(c) + "）"]), state.wtype);
-
-    const mats = Object.entries(MATERIALS);
-    fillSelect($("#resourceSelect"), "全部资源",
-      mats.map(([m, c]) => [m, zh(MATERIAL_ZH, m) + "（" + fmt(c) + "）"]), state.resource);
-    const systems = Object.entries(SYSTEMS);
-    fillSelect($("#systemSelect"), "全部星系类型",
-      systems.map(([s, c]) => [s, zh(SYS_ZH, s) + "（" + fmt(c) + "）"]), state.system);
+    fillCheckList($("#kindList"),
+      KIND_ORDER.map(k => [k, KIND_LABEL[k], META.kinds[k] || 0]), state.kinds);
+    fillCheckList($("#rarityList"),
+      RARITY_ORDER.map(k => [k, RARITY_LABEL[k], META.rarities[k] || 0]), state.rarities);
+    fillCheckList($("#wtypeList"),
+      worldTypeCounts().map(([w, c]) => [w, zh(WORLD_ZH, w), c]), state.wtypes);
+    fillCheckList($("#resourceList"),
+      Object.entries(MATERIALS).map(([m, c]) => [m, zh(MATERIAL_ZH, m), c]), state.resources);
+    fillCheckList($("#systemList"),
+      Object.entries(SYSTEMS).map(([s, c]) => [s, zh(SYS_ZH, s), c]), state.systems);
 
     const maxStrength = rows.reduce((m, r) => Math.max(m, r.strength || 0), 1);
     const strengthVals = Array.from({ length: Math.max(1, maxStrength) }, (_, i) => String(i + 1));
@@ -815,19 +1102,164 @@
     fillSelect($("#bodyMin"), "最小", bodyVals.map(v => [v, v]), state.bodyMin);
     fillSelect($("#bodyMax"), "最大", bodyVals.map(v => [v, v]), state.bodyMax);
 
-    const metricSel = $("#metricSelect");
-    metricSel.textContent = "";
-    metricSel.appendChild(elem("option", { value: "" }, "不按指标筛选"));
-    Object.keys(METRICS).forEach(k => metricSel.appendChild(elem("option", { value: k }, METRICS[k].label)));
-    metricSel.value = state.metric;
-    syncMetricUnit();
+    renderMetricRows();
   }
 
-  // 规模指标的输入框使用 x 单位提示（10000 → 1x）
-  function syncMetricUnit() {
-    const isSize = state.metric === "size";
-    $("#metricMin").placeholder = isSize ? "最小 x" : "最小";
-    $("#metricMax").placeholder = isSize ? "最大 x" : "最大";
+  function renderMetricRows() {
+    const box = $("#metricRows");
+    if (!box) return;
+    box.textContent = "";
+    state.metricRanges.forEach((range, idx) => {
+      const row = elem("div", { class: "metric-row" });
+
+      const sel = elem("select", { class: "metric-key", "aria-label": "指标" });
+      sel.appendChild(elem("option", { value: "" }, "不按指标筛选"));
+      Object.keys(METRICS).forEach(k =>
+        sel.appendChild(elem("option", { value: k }, METRICS[k].label)));
+      sel.value = range.metric;
+
+      const min = elem("input", { type: "number", class: "metric-min", placeholder: "最小", step: "any" });
+      const max = elem("input", { type: "number", class: "metric-max", placeholder: "最大", step: "any" });
+      min.value = range.min;
+      max.value = range.max;
+
+      function syncInputs() {
+        const isSize = range.metric === "size";
+        min.placeholder = isSize ? "最小 x" : "最小";
+        max.placeholder = isSize ? "最大 x" : "最大";
+        min.disabled = max.disabled = !range.metric;
+      }
+      syncInputs();
+
+      sel.addEventListener("change", () => {
+        range.metric = sel.value;
+        range.min = range.max = "";
+        min.value = max.value = "";
+        syncInputs();
+        state.page = 0;
+        renderAll();
+      });
+      const applyRange = debounce(() => {
+        state.page = 0;
+        renderAll();
+      }, 180);
+      min.addEventListener("input", () => {
+        range.min = min.value;
+        applyRange();
+      });
+      max.addEventListener("input", () => {
+        range.max = max.value;
+        applyRange();
+      });
+
+      const rm = elem("button", {
+        type: "button", class: "metric-remove", title: "删除此指标", "aria-label": "删除此指标"
+      }, "×");
+      rm.addEventListener("click", () => {
+        state.metricRanges.splice(idx, 1);
+        if (!state.metricRanges.length)
+          state.metricRanges.push({ metric: "", min: "", max: "" });
+        renderMetricRows();
+        state.page = 0;
+        renderAll();
+      });
+
+      row.appendChild(sel);
+      row.appendChild(min);
+      row.appendChild(elem("span", { class: "metric-dash" }, "–"));
+      row.appendChild(max);
+      row.appendChild(rm);
+      box.appendChild(row);
+    });
+  }
+
+  function countList(list, keyFn) {
+    const counts = {};
+    list.forEach(x => {
+      const k = keyFn(x);
+      if (k) counts[k] = (counts[k] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  }
+
+  function refreshWorldOptions() {
+    fillCheckList($("#worldTypeList"),
+      countList(WORLD_ROWS, w => w.wtype).map(([k, c]) => [k, zh(WORLD_ZH, k), c]),
+      state.wf.wtypes);
+    fillCheckList($("#worldEnvList"),
+      countList(WORLD_ROWS, w => w.env).map(([k, c]) => [k, zh(ENV_ZH, k), c]),
+      state.wf.envs);
+    fillCheckList($("#worldSystemList"),
+      countList(WORLD_ROWS, w => w.syskind).map(([k, c]) => [k, zh(SYS_ZH, k), c]),
+      state.wf.systems);
+    fillCheckList($("#worldSclassList"),
+      countList(WORLD_ROWS, w => w.sclass).map(([k, c]) => [k, zh(STELLAR_ZH, k), c]),
+      state.wf.sclasses);
+    const matCounts = {};
+    WORLD_ROWS.forEach(w => w.mats.forEach(m => {
+      matCounts[m] = (matCounts[m] || 0) + 1;
+    }));
+    fillCheckList($("#worldResourceList"),
+      Object.entries(matCounts)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .map(([m, c]) => [m, zh(MATERIAL_ZH, m), c]),
+      state.wf.resources);
+
+    $("#worldDeploy").value = state.wf.deploy;
+    [["#worldSizeMin", "sizeMin"], ["#worldSizeMax", "sizeMax"],
+     ["#worldPopMin", "popMin"], ["#worldPopMax", "popMax"],
+     ["#worldHabMin", "habMin"], ["#worldHabMax", "habMax"]]
+      .forEach(([sel, key]) => { $(sel).value = state.wf[key]; });
+  }
+
+  function setupSearchScopes(view) {
+    const sel = $("#searchField");
+    sel.textContent = "";
+    const opts = view === "world"
+      ? [["", "全部字段"], ["id", "天体编号"], ["label", "天体名称"],
+         ["system", "星系名称"], ["wtype", "天体类型"], ["env", "环境"],
+         ["sclass", "恒星分类"], ["resource", "资源"]]
+      : [["", "全部字段"], ["id", "档案编号"], ["seq", "创建序列"], ["seed", "种子"],
+         ["system", "星系名称"], ["world", "天体编号"], ["resource", "资源"]];
+    opts.forEach(([value, label]) => sel.appendChild(elem("option", { value }, label)));
+    sel.value = "";
+    state.searchField = "";
+  }
+
+  function setView(view) {
+    if (state.view === view) return;
+    state.view = view;
+    document.body.dataset.view = view;
+    document.querySelectorAll(".view-btn").forEach(btn =>
+      btn.classList.toggle("active", btn.dataset.view === view));
+    state.page = 0;
+    state.openRes.clear();
+    state.q = "";
+    $("#searchInput").value = "";
+    setupSearchScopes(view);
+    if (view === "world") {
+      state.sortKey = "label";
+      state.sortDir = "asc";
+      refreshWorldOptions();
+      computeWorldDomains();
+      buildWorldTableHead();
+      $("#tableTitle").textContent = "存档天体表";
+      $("#tableSub").textContent =
+        "每个存档天体一行 · 点击表头排序 · 点击资源展开明细 · 点击行查看详情";
+    } else {
+      state.sortKey = "seq";
+      state.sortDir = "asc";
+      refreshOptions();
+      computeDomains();
+      buildTableHead();
+      $("#tableTitle").textContent = "档案表";
+      $("#tableSub").textContent =
+        "每个档案一行 · 星系档案显示内含天体聚合值 · 点击表头排序 · 点击资源展开明细 · 点击行查看档案详情";
+    }
+    updateSortMarks();
+    updateMasthead();
+    renderAll();
   }
 
   function bindControls() {
@@ -841,41 +1273,74 @@
       state.page = 0;
       renderAll();
     }, 120));
-    $("#kindSelect").addEventListener("change", e => { state.kind = e.target.value; state.page = 0; renderAll(); });
-    $("#raritySelect").addEventListener("change", e => { state.rarity = e.target.value; state.page = 0; renderAll(); });
-    $("#wtypeSelect").addEventListener("change", e => { state.wtype = e.target.value; state.page = 0; renderAll(); });
-    $("#resourceSelect").addEventListener("change", e => { state.resource = e.target.value; state.page = 0; renderAll(); });
-    $("#systemSelect").addEventListener("change", e => { state.system = e.target.value; state.page = 0; renderAll(); });
+    bindCheckList("#kindList", state.kinds);
+    bindCheckList("#rarityList", state.rarities);
+    bindCheckList("#wtypeList", state.wtypes);
+    bindCheckList("#resourceList", state.resources);
+    bindCheckList("#systemList", state.systems);
+    bindCheckList("#worldTypeList", state.wf.wtypes);
+    bindCheckList("#worldEnvList", state.wf.envs);
+    bindCheckList("#worldSystemList", state.wf.systems);
+    bindCheckList("#worldSclassList", state.wf.sclasses);
+    bindCheckList("#worldResourceList", state.wf.resources);
+
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.addEventListener("click", () => setView(btn.dataset.view));
+    });
+
+    document.querySelectorAll('.filters [data-invert]').forEach(btn => {
+      btn.addEventListener("click", () => {
+        const key = btn.dataset.invert;
+        const set = key.startsWith("wf.") ? state.wf[key.slice(3)] : state[key];
+        const list = btn.closest(".filter-group").querySelector(".check-list");
+        list.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+          cb.checked = !cb.checked;
+          if (cb.checked) set.add(cb.value); else set.delete(cb.value);
+        });
+        state.page = 0;
+        renderAll();
+      });
+    });
     $("#strengthMin").addEventListener("change", e => { state.strengthMin = e.target.value; state.page = 0; renderAll(); });
     $("#strengthMax").addEventListener("change", e => { state.strengthMax = e.target.value; state.page = 0; renderAll(); });
     $("#bodyMin").addEventListener("change", e => { state.bodyMin = e.target.value; state.page = 0; renderAll(); });
     $("#bodyMax").addEventListener("change", e => { state.bodyMax = e.target.value; state.page = 0; renderAll(); });
-    $("#metricSelect").addEventListener("change", e => {
-      state.metric = e.target.value;
-      const on = !!state.metric;
-      $("#metricMin").disabled = !on;
-      $("#metricMax").disabled = !on;
-      syncMetricUnit();
+    $("#addMetric").addEventListener("click", () => {
+      state.metricRanges.push({ metric: "", min: "", max: "" });
+      renderMetricRows();
       state.page = 0;
       renderAll();
     });
-    const metricInput = debounce(() => {
-      state.metricMin = $("#metricMin").value;
-      state.metricMax = $("#metricMax").value;
+    $("#worldDeploy").addEventListener("change", e => {
+      state.wf.deploy = e.target.value;
       state.page = 0;
       renderAll();
-    }, 200);
-    $("#metricMin").addEventListener("input", metricInput);
-    $("#metricMax").addEventListener("input", metricInput);
+    });
+    const worldRange = debounce(() => { state.page = 0; renderAll(); }, 180);
+    [["#worldSizeMin", "sizeMin"], ["#worldSizeMax", "sizeMax"],
+     ["#worldPopMin", "popMin"], ["#worldPopMax", "popMax"],
+     ["#worldHabMin", "habMin"], ["#worldHabMax", "habMax"]]
+      .forEach(([sel, key]) => {
+        $(sel).addEventListener("input", e => {
+          state.wf[key] = e.target.value;
+          worldRange();
+        });
+      });
     $("#resetBtn").addEventListener("click", resetFilters);
     $("#pageSize").addEventListener("change", e => {
       state.pageSize = +e.target.value;
       state.page = 0;
-      renderTable();
+      renderActiveTable();
     });
-    $("#prevPage").addEventListener("click", () => { if (state.page > 0) { state.page--; renderTable(); } });
-    $("#nextPage").addEventListener("click", () => { if (state.page + 1 < maxPage()) { state.page++; renderTable(); } });
-    $("#csvBtn").addEventListener("click", exportCSV);
+    $("#prevPage").addEventListener("click", () => {
+      if (state.page > 0) { state.page--; renderActiveTable(); }
+    });
+    $("#nextPage").addEventListener("click", () => {
+      if (state.page + 1 < maxActivePage()) { state.page++; renderActiveTable(); }
+    });
+    $("#csvBtn").addEventListener("click", () => {
+      if (state.view === "world") exportWorldCSV(); else exportCSV();
+    });
     $("#drawerClose").addEventListener("click", closeDrawer);
     $("#backdrop").addEventListener("click", closeDrawer);
     document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
@@ -883,38 +1348,86 @@
 
   function initControls() {
     refreshOptions();
+    refreshWorldOptions();
     bindControls();
   }
 
   function resetState() {
     state.q = "";
     state.searchField = "";
-    state.kind = "";
-    state.rarity = "";
-    state.wtype = "";
-    state.resource = "";
-    state.system = "";
+    state.kinds.clear();
+    state.rarities.clear();
+    state.wtypes.clear();
+    state.resources.clear();
+    state.systems.clear();
     state.strengthMin = state.strengthMax = "";
     state.bodyMin = state.bodyMax = "";
-    state.metric = state.metricMin = state.metricMax = "";
+    state.metricRanges = [{ metric: "", min: "", max: "" }];
+    resetWorldFilters();
+    state.openRes.clear();
+    state.page = 0;
+  }
+
+  function resetWorldFilters() {
+    state.q = "";
+    state.searchField = "";
+    state.wf.wtypes.clear();
+    state.wf.envs.clear();
+    state.wf.systems.clear();
+    state.wf.sclasses.clear();
+    state.wf.resources.clear();
+    state.wf.deploy = "";
+    state.wf.sizeMin = state.wf.sizeMax = "";
+    state.wf.popMin = state.wf.popMax = "";
+    state.wf.habMin = state.wf.habMax = "";
     state.openRes.clear();
     state.page = 0;
   }
 
   function resetFilters() {
+    if (state.view === "world") {
+      resetWorldFilters();
+      $("#searchField").value = "";
+      $("#searchInput").value = "";
+      refreshWorldOptions();
+      renderAll();
+      return;
+    }
     resetState();
     $("#searchField").value = "";
     $("#searchInput").value = "";
-    $("#metricMin").value = "";
-    $("#metricMax").value = "";
-    $("#metricMin").disabled = true;
-    $("#metricMax").disabled = true;
     refreshOptions();
     renderAll();
   }
 
   // ---------- KPI ----------
+  function setKpiLabels(view) {
+    if (view === "world") {
+      $("#heroLabel").textContent = "匹配天体";
+      $("#kpiLabel1").textContent = "已部署";
+      $("#kpiSub1").textContent = "当前筛选";
+      $("#kpiLabel2").textContent = "星系数量";
+      $("#kpiSub2").textContent = "有匹配天体";
+      $("#kpiLabel3").textContent = "平均规模";
+      $("#kpiSub3").textContent = "×10000";
+      $("#kpiLabel4").textContent = "资源种类";
+      $("#kpiSub4").textContent = "不同材料数";
+    } else {
+      $("#heroLabel").textContent = "匹配档案";
+      $("#kpiLabel1").textContent = "奇迹档案";
+      $("#kpiSub1").textContent = "最高稀有度";
+      $("#kpiLabel2").textContent = "稀有及以上";
+      $("#kpiSub2").textContent = "稀有 / 奇迹";
+      $("#kpiLabel3").textContent = "平均强度";
+      $("#kpiSub3").textContent = "每档案平均";
+      $("#kpiLabel4").textContent = "资源种类";
+      $("#kpiSub4").textContent = "不同材料数";
+    }
+  }
+
   function updateKpis() {
+    if (state.view === "world") { updateWorldKpis(); return; }
+    setKpiLabels("archive");
     const n = filtered.length;
     $("#heroValue").textContent = fmt(n);
     $("#heroSub").textContent = rows.length
@@ -927,6 +1440,26 @@
     $("#kpiStrength").textContent = avg.toFixed(2);
     const mats = new Set();
     filtered.forEach(r => r.mats.forEach(m => mats.add(m)));
+    $("#kpiMats").textContent = fmt(mats.size);
+  }
+
+  function updateWorldKpis() {
+    setKpiLabels("world");
+    const n = filteredWorlds.length;
+    $("#heroValue").textContent = fmt(n);
+    $("#heroSub").textContent = WORLD_ROWS.length
+      ? "存档天体 · " + fmt(WORLD_META.systemCount) + " 个星系 · 已部署 " + fmt(WORLD_META.deployedCount)
+      : "当前存档没有存档天体数据";
+    $("#matchInfo").textContent = "匹配 " + fmt(n) + " / " + fmt(WORLD_ROWS.length) + " 个天体";
+    $("#kpiWonder").textContent = fmt(filteredWorlds.filter(w => w.deployed).length);
+    const systems = new Set();
+    filteredWorlds.forEach(w => { if (w.systemId) systems.add(w.systemId); });
+    $("#kpiRare").textContent = fmt(systems.size);
+    const avgSize = n
+      ? filteredWorlds.reduce((s, w) => s + (w.size || 0), 0) / n / 1e4 : 0;
+    $("#kpiStrength").textContent = avgSize.toFixed(1) + "x";
+    const mats = new Set();
+    filteredWorlds.forEach(w => w.mats.forEach(m => mats.add(m)));
     $("#kpiMats").textContent = fmt(mats.size);
   }
 
@@ -1110,6 +1643,49 @@
     barH($("#resourceChart"), items, { labelW: 158, valueW: 60, rowH: 25, maxLabel: 24 });
   }
 
+  function renderWorldBar(sel, counts, dict, colorVarName) {
+    const items = Object.entries(counts)
+      .map(([k, c]) => ({ label: zh(dict, k), value: c, tip: k, color: cssVar(colorVarName) }))
+      .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label));
+    barH($(sel), items, { labelW: 118, valueW: 50, rowH: 23, maxLabel: 16 });
+  }
+
+  function renderWorldCharts() {
+    const typeCounts = {}, envCounts = {}, sclassCounts = {};
+    filteredWorlds.forEach(w => {
+      const t = w.wtype || "—"; typeCounts[t] = (typeCounts[t] || 0) + 1;
+      const e = w.env || "—"; envCounts[e] = (envCounts[e] || 0) + 1;
+      const s = w.sclass || "—"; sclassCounts[s] = (sclassCounts[s] || 0) + 1;
+    });
+    renderWorldBar("#worldTypeChart", typeCounts, WORLD_ZH, "--series-1");
+    renderWorldBar("#worldEnvChart", envCounts, ENV_ZH, "--series-2");
+    renderWorldBar("#worldSclassChart", sclassCounts, STELLAR_ZH, "--series-3");
+
+    const deployed = filteredWorlds.filter(w => w.deployed).length;
+    barH($("#worldDeployChart"), [
+      { label: "已部署", value: deployed, color: cssVar("--series-1") },
+      { label: "未部署", value: filteredWorlds.length - deployed, color: cssVar("--series-2") }
+    ], { labelW: 84, valueW: 50, rowH: 26, maxLabel: 10 });
+
+    const counts = new Map();
+    filteredWorlds.forEach(w => w.mats.forEach(m => counts.set(m, (counts.get(m) || 0) + 1)));
+    const items = Array.from(counts.entries())
+      .map(([m, c]) => ({ label: zh(MATERIAL_ZH, m), value: c, tip: m, color: cssVar("--series-1") }))
+      .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label));
+    barH($("#worldResourceChart"), items, { labelW: 140, valueW: 50, rowH: 24, maxLabel: 22 });
+
+    renderScatter("worldScatterBase", "worldScatterOverlay", {
+      data: filteredWorlds, xKey: "size", yKey: "mine", xLog: false, yLog: false,
+      xLabel: "规模（×10000）", yLabel: "采矿速率",
+      xFmt: sizeX, yFmt: fmt, height: 320,
+      domainX: WORLD_DOMAINS.size, domainY: WORLD_DOMAINS.mine,
+      colorOf: w => cssVar(w.deployed ? "--series-1" : "--series-2"),
+      tipKind: w => zh(WORLD_ZH, w.wtype),
+      tipId: w => w.label || w.id.slice(0, 12),
+      onClick: openWorldDetail
+    });
+  }
+
   // ---------- scatter ----------
   const DOMAINS = {};
   function domainOf(key) {
@@ -1127,6 +1703,23 @@
     ["size", "mine", "cap", "dist"].forEach(k => { DOMAINS[k] = domainOf(k); });
   }
   computeDomains();
+
+  const WORLD_DOMAINS = {};
+  function worldDomainOf(key) {
+    let mn = Infinity, mx = -Infinity;
+    for (const w of WORLD_ROWS) {
+      const v = w[key];
+      if (v == null || !Number.isFinite(v)) continue;
+      if (v < mn) mn = v;
+      if (v > mx) mx = v;
+    }
+    if (!Number.isFinite(mn)) { mn = 0; mx = 1; }
+    return { min: mn, max: mx };
+  }
+  function computeWorldDomains() {
+    ["size", "mine"].forEach(k => { WORLD_DOMAINS[k] = worldDomainOf(k); });
+  }
+  computeWorldDomains();
 
   function paddedDomain(d, log) {
     if (log) {
@@ -1172,8 +1765,10 @@
     const pad = { l: 70, r: 20, t: 16, b: 42 };
     const plotW = cssW - pad.l - pad.r;
     const plotH = cssH - pad.t - pad.b;
-    const dx = paddedDomain(DOMAINS[opts.xKey], opts.xLog);
-    const dy = paddedDomain(DOMAINS[opts.yKey], opts.yLog);
+    const data = opts.data || filtered;
+    const colorOf = opts.colorOf || (r => cssVar(KIND_VAR[r.kind]));
+    const dx = paddedDomain(opts.domainX || DOMAINS[opts.xKey], opts.xLog);
+    const dy = paddedDomain(opts.domainY || DOMAINS[opts.yKey], opts.yLog);
 
     function sx(v) {
       if (opts.xLog) {
@@ -1257,11 +1852,11 @@
 
     // points
     const pts = [];
-    filtered.forEach(r => {
+    data.forEach(r => {
       const x = sx(r[opts.xKey]);
       const y = sy(r[opts.yKey]);
       if (x < pad.l || x > cssW - pad.r || y < pad.t || y > pad.t + plotH) return;
-      pts.push({ x, y, r, color: cssVar(KIND_VAR[r.kind]) });
+      pts.push({ x, y, r, color: colorOf(r) });
     });
 
     pts.forEach(p => {
@@ -1276,7 +1871,7 @@
 
     // direct label: extreme point on y
     let top = null;
-    filtered.forEach(r => {
+    data.forEach(r => {
       if (!top || (r[opts.yKey] || 0) > (top[opts.yKey] || 0)) top = r;
     });
     if (top) {
@@ -1300,7 +1895,7 @@
     }
 
     // empty state
-    if (!filtered.length) {
+    if (!data.length) {
       ctx.fillStyle = inkMuted;
       ctx.font = "12.5px system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif";
       ctx.textAlign = "center";
@@ -1331,7 +1926,8 @@
       return [
         { text: opts.yFmt(p.r[opts.yKey]), strong: true },
         { text: opts.yLabel + " · " + opts.xLabel + ": " + opts.xFmt(p.r[opts.xKey]) },
-        { text: KIND_LABEL[p.r.kind] + " · " + p.r.id.slice(0, 12), color: p.color }
+        { text: opts.tipKind ? (opts.tipKind(p.r) + " · " + (opts.tipId ? opts.tipId(p.r) : p.r.id.slice(0, 12)))
+                            : (KIND_LABEL[p.r.kind] + " · " + p.r.id.slice(0, 12)), color: p.color }
       ];
     }
     base.onpointermove = e => {
@@ -1364,7 +1960,7 @@
     base.onclick = e => {
       const rect = base.getBoundingClientRect();
       const p = nearest(e.clientX - rect.left, e.clientY - rect.top);
-      if (p) openDetail(p.r);
+      if (p) (opts.onClick ? opts.onClick(p.r) : openDetail(p.r));
     };
     base._pts = pts;
   }
@@ -1454,6 +2050,30 @@
     { key: "matCount", label: "资源", num: true }
   ];
 
+  const COLS_W = [
+    { key: "label", label: "天体", fmt: w => w.label, title: w => w.id },
+    { key: "wtype", label: "类型", fmt: w => zh(WORLD_ZH, w.wtype) },
+    { key: "system", label: "星系", fmt: w => shortLabel(w.sysLabel) },
+    { key: "sclass", label: "恒星分类", fmt: w => zh(STELLAR_ZH, w.sclass) },
+    { key: "env", label: "环境", fmt: w => zh(ENV_ZH, w.env) },
+    { key: "size", label: "规模", num: true, fmt: w => sizeX(w.size) },
+    { key: "mine", label: "采矿速率", num: true, fmt: w => fmt(w.mine) },
+    { key: "pop", label: "人口上限", num: true, fmt: w => fmt(w.pop) },
+    { key: "hab", label: "宜居度", num: true, fmt: w => fmt(w.hab) },
+    { key: "matCount", label: "资源", num: true },
+    { key: "deployed", label: "部署", fmt: w => w.deployed ? "已部署" : "未部署" }
+  ];
+
+  function sortValueWorld(w, key) {
+    if (key === "wtype") return zh(WORLD_ZH, w.wtype);
+    if (key === "system") return w.sysLabel || "";
+    if (key === "sclass") return zh(STELLAR_ZH, w.sclass);
+    if (key === "env") return zh(ENV_ZH, w.env);
+    if (key === "deployed") return w.deployed ? 1 : 0;
+    if (key === "label") return w.label || "";
+    return w[key] || 0;
+  }
+
   function sortValue(b, key) {
     const r = b.r;
     if (key === "kind") return KIND_ORDER.indexOf(r.kind);
@@ -1466,16 +2086,20 @@
     return b[key];
   }
 
-  function buildTableHead() {
+  function activeCols() {
+    return state.view === "world" ? COLS_W : COLS;
+  }
+
+  function buildTableHeadFor(cols) {
     const tr = elem("tr");
-    COLS.forEach(c => {
+    cols.forEach(c => {
       const th = elem("th", { class: c.num ? "num" : "" });
       const b = elem("button", { type: "button" }, c.label);
       b.addEventListener("click", () => {
         if (state.sortKey === c.key) state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
         else { state.sortKey = c.key; state.sortDir = "asc"; }
         updateSortMarks();
-        renderTable();
+        renderActiveTable();
       });
       th.appendChild(b);
       tr.appendChild(th);
@@ -1485,10 +2109,14 @@
     head.appendChild(tr);
   }
 
+  function buildTableHead() { buildTableHeadFor(COLS); }
+  function buildWorldTableHead() { buildTableHeadFor(COLS_W); }
+
   function updateSortMarks() {
     const ths = $("#tableHead").querySelectorAll("th");
-    COLS.forEach((c, i) => {
+    activeCols().forEach((c, i) => {
       const th = ths[i];
+      if (!th) return;
       if (c.key === state.sortKey) th.setAttribute("data-sort", state.sortDir);
       else th.removeAttribute("data-sort");
     });
@@ -1496,6 +2124,19 @@
 
   function maxPage() {
     return Math.max(1, Math.ceil(tableBodies.length / state.pageSize));
+  }
+
+  function worldMaxPage() {
+    return Math.max(1, Math.ceil(filteredWorlds.length / state.pageSize));
+  }
+
+  function maxActivePage() {
+    return state.view === "world" ? worldMaxPage() : maxPage();
+  }
+
+  function renderActiveTable() {
+    if (state.view === "world") renderWorldTable();
+    else renderTable();
   }
 
   function buildResPanel(b) {
@@ -1614,6 +2255,144 @@
       " 页 · 共 " + fmt(total) + " 个档案";
     $("#prevPage").disabled = state.page <= 0;
     $("#nextPage").disabled = state.page >= maxPage() - 1;
+  }
+
+  function buildWorldResPanel(w) {
+    const panel = elem("div", { class: "res-panel" });
+    panel.appendChild(elem("div", { class: "res-head" },
+      "主采矿产物 " + zh(MATERIAL_ZH, w.minePrimary) +
+      " · 资源合计 " + fmt(w.mine) +
+      " · " + zh(WORLD_ZH, w.wtype) + " / " + zh(ENV_ZH, w.env)));
+    const grid = elem("div", { class: "res-grid" });
+    const mats = Object.entries(w.matTotals || {}).sort((a, b) => b[1] - a[1]);
+    const max = mats.length ? mats[0][1] : 0;
+    mats.forEach(([m, v]) => {
+      const item = elem("div", { class: "res-item", title: m });
+      item.appendChild(elem("span", { class: "res-name" }, zh(MATERIAL_ZH, m)));
+      item.appendChild(elem("span", { class: "res-val" }, fmt(v)));
+      const track = elem("div", { class: "res-track" });
+      const fill = elem("div", { class: "res-fill" });
+      fill.style.width = (max ? Math.max(2, v / max * 100) : 0) + "%";
+      track.appendChild(fill);
+      item.appendChild(track);
+      grid.appendChild(item);
+    });
+    if (!mats.length)
+      grid.appendChild(elem("div", { class: "res-empty" }, "该天体没有资源数据"));
+    panel.appendChild(grid);
+    return panel;
+  }
+
+  function toggleWorldRes(w, btn, row) {
+    const key = "w:" + w.id;
+    const open = !state.openRes.has(key);
+    if (open) state.openRes.add(key); else state.openRes.delete(key);
+    row.hidden = !open;
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+    btn.textContent = open ? "收起 ▴" : w.matCount + " 种资源 ▾";
+  }
+
+  function renderWorldTable() {
+    const total = filteredWorlds.length;
+    state.page = Math.min(state.page, worldMaxPage() - 1);
+    const sorted = filteredWorlds.slice().sort((a, b) => {
+      const va = sortValueWorld(a, state.sortKey);
+      const vb = sortValueWorld(b, state.sortKey);
+      const c = (typeof va === "string" || typeof vb === "string")
+        ? String(va).localeCompare(String(vb))
+        : (va || 0) - (vb || 0);
+      return state.sortDir === "asc" ? c : -c;
+    });
+    const start = state.page * state.pageSize;
+    const pageRows = sorted.slice(start, start + state.pageSize);
+    const tbody = $("#tableBody");
+    tbody.textContent = "";
+    const cols = COLS_W;
+
+    if (!pageRows.length) {
+      const tr = elem("tr", { class: "empty-row" });
+      const emptyText = WORLD_ROWS.length
+        ? "当前筛选无匹配天体"
+        : "当前存档没有存档天体数据";
+      tr.appendChild(elem("td", { colspan: String(cols.length) }, emptyText));
+      tbody.appendChild(tr);
+    } else {
+      pageRows.forEach(w => {
+        const key = "w:" + w.id;
+        const resRow = elem("tr", { class: "res-row" });
+        const resTd = elem("td", { colspan: String(cols.length) });
+        resTd.appendChild(buildWorldResPanel(w));
+        resRow.appendChild(resTd);
+        resRow.hidden = !state.openRes.has(key);
+
+        const tr = elem("tr", { tabindex: "0" });
+        cols.forEach(c => {
+          const td = elem("td", { class: c.num ? "num" : (c.key === "label" ? "id" : "") });
+          if (c.key === "matCount") {
+            if (w.matCount) {
+              const open = state.openRes.has(key);
+              const btn = elem("button", {
+                type: "button", class: "res-toggle",
+                "aria-expanded": open ? "true" : "false"
+              }, open ? "收起 ▴" : w.matCount + " 种资源 ▾");
+              btn.addEventListener("click", e => {
+                e.stopPropagation();
+                toggleWorldRes(w, btn, resRow);
+              });
+              td.appendChild(btn);
+            } else {
+              td.textContent = "—";
+            }
+          } else {
+            td.textContent = c.fmt ? c.fmt(w) : (w[c.key] == null ? "—" : String(w[c.key]));
+          }
+          if (c.title) td.title = c.title(w);
+          tr.appendChild(td);
+        });
+        tr.addEventListener("click", () => openWorldDetail(w));
+        tr.addEventListener("keydown", e => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openWorldDetail(w); }
+        });
+        tbody.appendChild(tr);
+        tbody.appendChild(resRow);
+      });
+    }
+
+    $("#pageInfo").textContent = "第 " + (state.page + 1) + " / " + worldMaxPage() +
+      " 页 · 共 " + fmt(total) + " 个天体";
+    $("#prevPage").disabled = state.page <= 0;
+    $("#nextPage").disabled = state.page >= worldMaxPage() - 1;
+  }
+
+  function exportWorldCSV() {
+    const head = ["天体", "天体 ID", "类型", "环境", "星系", "恒星分类", "星系类型",
+      "规模（×10000）", "采矿速率", "人口上限", "宜居度", "资源种类",
+      "主采矿产物", "部署状态", "资源明细", "距离（毫光年）"];
+    const sorted = filteredWorlds.slice().sort((a, b) => {
+      const va = sortValueWorld(a, state.sortKey), vb = sortValueWorld(b, state.sortKey);
+      const c = (typeof va === "string" || typeof vb === "string")
+        ? String(va).localeCompare(String(vb))
+        : (va || 0) - (vb || 0);
+      return state.sortDir === "asc" ? c : -c;
+    });
+    const lines = [head.map(csvCell).join(",")];
+    sorted.forEach(w => {
+      const detail = Object.entries(w.matTotals || {}).sort((a, b) => b[1] - a[1])
+        .map(([m, v]) => zh(MATERIAL_ZH, m) + ":" + v).join("|");
+      lines.push([
+        w.label, w.id, zh(WORLD_ZH, w.wtype), zh(ENV_ZH, w.env), shortLabel(w.sysLabel),
+        zh(STELLAR_ZH, w.sclass), zh(SYS_ZH, w.syskind), w.size / 1e4, w.mine, w.pop, w.hab,
+        w.matCount, zh(MATERIAL_ZH, w.minePrimary), w.deployed ? "已部署" : "未部署",
+        detail, w.dist
+      ].map(csvCell).join(","));
+    });
+    const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "存档天体_筛选结果.csv";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   }
 
   function exportCSV() {
@@ -1751,6 +2530,63 @@
     $("#drawerClose").focus();
   }
 
+  function openWorldDetail(w) {
+    $("#drawerTitle").textContent = w.label || w.id;
+    const body = $("#drawerBody");
+    body.textContent = "";
+
+    const chips = elem("div", { class: "chip-row", style: "margin-bottom:12px" });
+    chips.appendChild(elem("span", { class: "chip-static" }, zh(WORLD_ZH, w.wtype)));
+    chips.appendChild(elem("span", { class: "chip-static" }, zh(ENV_ZH, w.env)));
+    chips.appendChild(elem("span", { class: "chip-static" }, w.deployed ? "已部署" : "未部署"));
+    if (w.active) chips.appendChild(elem("span", { class: "chip-static" }, "当前世界"));
+    body.appendChild(chips);
+
+    body.appendChild(elem("div", { class: "section-title" }, "指标"));
+    const grid = elem("div", { class: "kv-grid" });
+    grid.appendChild(kv("天体 ID", w.id, true));
+    grid.appendChild(kv("星系", shortLabel(w.sysLabel)));
+    grid.appendChild(kv("恒星分类", zh(STELLAR_ZH, w.sclass)));
+    grid.appendChild(kv("星系类型", zh(SYS_ZH, w.syskind)));
+    grid.appendChild(kv("距离（毫光年）", fmt(w.dist)));
+    grid.appendChild(kv("规模", sizeX(w.size)));
+    grid.appendChild(kv("采矿速率", fmt(w.mine)));
+    grid.appendChild(kv("人口上限", fmt(w.pop)));
+    grid.appendChild(kv("宜居度", fmt(w.hab)));
+    grid.appendChild(kv("资源种类", w.matCount));
+    grid.appendChild(kv("主采矿产物", zh(MATERIAL_ZH, w.minePrimary)));
+    grid.appendChild(kv("资源节点", w.nodes));
+    grid.appendChild(kv("部署状态", w.deployed ? "已部署" : "未部署"));
+    grid.appendChild(kv("运行时步数", w.step == null ? "—" : fmt(w.step)));
+    grid.appendChild(kv("来源", zh(WORLD_SOURCE_ZH, w.source)));
+    grid.appendChild(kv("轨道", w.orbit));
+    body.appendChild(grid);
+
+    body.appendChild(elem("div", { class: "section-title" }, "资源 · " + w.matCount));
+    const mats = Object.entries(w.matTotals || {}).sort((a, b) => b[1] - a[1]);
+    const max = mats.length ? mats[0][1] : 0;
+    if (!mats.length) {
+      body.appendChild(elem("div", { class: "world-sub" }, "该天体没有资源数据"));
+    } else {
+      mats.forEach(([m, v]) => {
+        const row = elem("div", { class: "mat-row" });
+        row.appendChild(elem("div", { class: "mat-name", title: m }, zh(MATERIAL_ZH, m)));
+        const track = elem("div", { class: "mat-track" });
+        const fill = elem("div", { class: "mat-fill" });
+        fill.style.width = (max ? Math.max(2, v / max * 100) : 0) + "%";
+        track.appendChild(fill);
+        row.appendChild(track);
+        row.appendChild(elem("div", { class: "mat-val" }, fmt(v)));
+        body.appendChild(row);
+      });
+    }
+
+    drawer.classList.add("open");
+    drawer.setAttribute("aria-hidden", "false");
+    backdrop.classList.add("open");
+    $("#drawerClose").focus();
+  }
+
   function closeDrawer() {
     drawer.classList.remove("open");
     drawer.setAttribute("aria-hidden", "true");
@@ -1759,6 +2595,13 @@
 
   // ---------- render ----------
   function renderAll() {
+    if (state.view === "world") {
+      filteredWorlds = WORLD_ROWS.filter(matchesWorld);
+      updateKpis();
+      renderWorldCharts();
+      renderWorldTable();
+      return;
+    }
     filtered = rows.filter(matches);
     rebuildBodies();
     updateKpis();
@@ -1806,6 +2649,17 @@
 
   // ---------- 载入外部 JSON ----------
   function updateMasthead() {
+    if (state.view === "world") {
+      $("#brandSub").textContent = "版本 " + META.revision +
+        " · 存档天体 " + fmt(WORLD_META.worldCount) + " 个 / " +
+        fmt(WORLD_META.systemCount) + " 个星系 · 已部署 " +
+        fmt(WORLD_META.deployedCount) + " · 生成于 " + META.generatedAt;
+      $("#footer").textContent = "数据源 " + META.source +
+        " · universe.world_seed / procedural_expansion / worlds · 版本 " + META.version +
+        (META.saveFormat ? " · 存档格式 v" + META.saveFormat : "") +
+        (META.rulesVersion ? " · 规则 " + META.rulesVersion : "");
+      return;
+    }
     $("#brandSub").textContent = "版本 " + META.revision +
       " · " + fmt(META.artifactCount) + " 个档案 / " + fmt(META.worldCount || 0) + " 个本体天体" +
       (META.scenario ? " · " + META.scenario : "") +
@@ -1932,10 +2786,197 @@
     return out;
   }
 
-  function applyStarsea(cs, sourceName, saveMeta) {
+  function extractUniverse(obj) {
+    if (obj && obj.universe && typeof obj.universe === "object") return obj.universe;
+    if (obj && obj.world_seed && obj.procedural_expansion) return obj;
+    return null;
+  }
+
+  const FLAT_MATERIAL_FIELDS = [
+    ["metal", "metal_bps"], ["carbon", "carbon_bps"],
+    ["silica_ore", "silica_bps"], ["ice", "ice_bps"], ["titanium_ore", "titanium_bps"]
+  ];
+
+  function extractWorldMaterials(c) {
+    const ext = c.extraction || {};
+    const pm = ext.per_material_bps || {};
+    let totals = {};
+    const keys = Object.keys(pm);
+    if (keys.length) {
+      keys.forEach(k => {
+        const v = Number(pm[k] || 0);
+        if (v) totals[k] = v;
+      });
+    } else {
+      FLAT_MATERIAL_FIELDS.forEach(([item, field]) => {
+        const v = Number(ext[field] || 0);
+        if (v) totals[item] = v;
+      });
+      const sid = ext.specialty_item_id;
+      const sv = Number(ext.specialty_bps || 0);
+      if (sid && sv) totals[sid] = sv;
+    }
+    let primary = c.mining_primary_item || ext.specialty_item_id || null;
+    if (!primary) {
+      let best = null;
+      for (const k in totals) if (!best || totals[k] > totals[best]) best = k;
+      primary = best;
+    }
+    return { totals, primary };
+  }
+
+  function buildWorldRow(world, system, runtime, starSys, source, nodes) {
+    const c = world.conditions || {};
+    const ex = extractWorldMaterials(c);
+    const mats = Object.keys(ex.totals).sort();
+    const sc = system.conditions || {};
+    const sid = system.id || world.system_id;
+    const sim = runtime && runtime.simulation;
+    const step = sim && sim.state ? sim.state.step : null;
+    return {
+      id: world.id, label: world.label || world.id,
+      wtype: world.world_type || null, env: world.environment_id || null,
+      bodyKind: c.body_kind || null, site: c.site_kind || null, canvas: c.canvas_kind || null,
+      orbit: Number(c.orbit_index || 0), size: Number(c.size_bps || 0),
+      hab: Number(c.habitability_bps || 0), pop: Number(c.natural_population_capacity || 0),
+      mine: Object.values(ex.totals).reduce((s, v) => s + v, 0),
+      minePrimary: ex.primary, matCount: mats.length, mats, matTotals: ex.totals,
+      nodes: (nodes || []).length,
+      systemId: sid || null, sysLabel: system.label || null, syskind: sc.system_kind_id || null,
+      sclass: system.stellar_class || null,
+      dist: Number(system.distance_milli_light_years || 0),
+      cap: Number(sc.stellar_capacity_kw || 0),
+      deployed: !!(runtime && runtime.deployed), runtime: !!runtime, step,
+      scene: world.scenario_id || null, source,
+      discovered: !!(starSys && starSys.discovered), reachable: !!(starSys && starSys.reachable)
+    };
+  }
+
+  function buildWorldsFromSave(universe, cs) {
+    const systems = {};
+    ((universe.world_seed || {}).systems || []).forEach(s => { if (s.id) systems[s.id] = s; });
+    ((universe.procedural_expansion || {}).systems || []).forEach(e => {
+      const s = e.system || {};
+      if (s.id) systems[s.id] = s;
+    });
+    const runtime = {};
+    (universe.worlds || []).forEach(w => { if (w.id) runtime[w.id] = w; });
+    const starSys = {};
+    (universe.star_systems || []).forEach(s => { if (s.id) starSys[s.id] = s; });
+    const notes = universe.world_notes || {};
+    const activeId = universe.active_world_id;
+
+    const slotMeta = {};
+    const slots = (cs && cs.slots) || {};
+    for (const name in slots) {
+      const slot = slots[name] || {};
+      const mat = slot.materialized || {};
+      const system = mat.system || {};
+      const ids = slot.world_ids || [];
+      const frozen = mat.frozen_worlds || [];
+      const worlds = mat.worlds || [];
+      ids.forEach((wid, i) => {
+        let world = {}, nodes = [];
+        if (i < frozen.length && frozen[i]) {
+          world = frozen[i].world || {};
+          nodes = frozen[i].resource_nodes || [];
+        } else if (i < worlds.length) {
+          world = worlds[i] || {};
+        }
+        slotMeta[wid] = { world, system, nodes };
+      });
+    }
+
+    const defs = {};
+    ((universe.world_seed || {}).worlds || []).forEach(e => {
+      const w = (e || {}).world || {};
+      if (w.id) defs[w.id] = [w, (e || {}).resource_nodes || [], "world_seed"];
+    });
+    ((universe.procedural_expansion || {}).systems || []).forEach(e => {
+      const frozen = e.frozen_worlds || [];
+      if (frozen.length) {
+        frozen.forEach(f => {
+          const w = (f || {}).world || {};
+          if (w.id) defs[w.id] = [w, (f || {}).resource_nodes || [], "procedural_expansion"];
+        });
+      } else {
+        (e.worlds || []).forEach(w => {
+          if (w.id) defs[w.id] = [w, [], "procedural_expansion"];
+        });
+      }
+    });
+
+    function make(world, system, source, nodes, overrideId, overrideLabel) {
+      const sid = system.id || world.system_id;
+      const row = buildWorldRow(world, system, runtime[world.id], starSys[sid], source, nodes);
+      if (overrideId) row.id = overrideId;
+      if (overrideLabel) row.label = overrideLabel;
+      row.runtimeOnly = !(row.id in defs);
+      row.active = row.id === activeId;
+      const note = notes[row.id] || {};
+      if (note.custom_name && String(note.custom_name).trim())
+        row.label = String(note.custom_name).trim();
+      return row;
+    }
+
+    const out = [];
+    const seen = new Set();
+    for (const wid in defs) {
+      const [world, nodes, source] = defs[wid];
+      out.push(make(world, systems[world.system_id] || {}, source, nodes));
+      seen.add(wid);
+    }
+    for (const wid in runtime) {
+      if (seen.has(wid)) continue;
+      if (slotMeta[wid]) {
+        const m = slotMeta[wid];
+        const world = Object.assign({}, m.world);
+        if (!world.id) world.id = wid;
+        out.push(make(world, m.system, "cosmic_starsea", m.nodes));
+      } else if (wid.indexOf("orbital-platform:") === 0) {
+        const baseId = wid.slice("orbital-platform:".length);
+        const base = defs[baseId];
+        if (base) {
+          out.push(make(base[0], systems[base[0].system_id] || {}, "special", base[1],
+            wid, (base[0].label || baseId) + " · 轨道平台"));
+        } else {
+          out.push(make({ id: wid, label: wid }, {}, "special"));
+        }
+      } else {
+        out.push(make({ id: wid, label: wid }, {}, "special"));
+      }
+    }
+    out.sort((a, b) => {
+      const al = a.sysLabel == null, bl = b.sysLabel == null;
+      if (al !== bl) return al ? 1 : -1;
+      return String(a.sysLabel || "").localeCompare(String(b.sysLabel || "")) ||
+        String(a.systemId || "").localeCompare(String(b.systemId || "")) ||
+        (a.orbit || 0) - (b.orbit || 0) ||
+        String(a.label || "").localeCompare(String(b.label || ""));
+    });
+    return out;
+  }
+
+  function worldMetaFrom(list) {
+    const systems = new Set(), mats = new Set();
+    list.forEach(w => {
+      if (w.systemId) systems.add(w.systemId);
+      w.mats.forEach(m => mats.add(m));
+    });
+    return {
+      worldCount: list.length,
+      systemCount: systems.size,
+      deployedCount: list.filter(w => w.deployed).length,
+      materialCount: mats.size
+    };
+  }
+
+  function applyStarsea(cs, sourceName, saveMeta, worlds) {
     rows = buildRowsFromStarsea(cs);
     MATERIALS = materialCounts(rows);
     SYSTEMS = systemCounts(rows);
+    WORLD_ROWS = worlds || [];
+    WORLD_META = worldMetaFrom(WORLD_ROWS);
 
     const kinds = {}, rarities = {};
     rows.forEach(r => {
@@ -1967,12 +3008,13 @@
     resetState();
     $("#searchField").value = "";
     $("#searchInput").value = "";
-    $("#metricMin").value = "";
-    $("#metricMax").value = "";
-    $("#metricMin").disabled = true;
-    $("#metricMax").disabled = true;
+    setupSearchScopes(state.view);
     refreshOptions();
+    refreshWorldOptions();
     computeDomains();
+    computeWorldDomains();
+    if (state.view === "world") buildWorldTableHead(); else buildTableHead();
+    updateSortMarks();
     updateMasthead();
     renderAll();
   }
@@ -2047,7 +3089,9 @@
       }
       const cs = extractStarsea(data);
       if (!cs) throw new Error("文件中没有 cosmic_starsea 数据");
-      applyStarsea(cs, file.name, saveMeta);
+      const universe = extractUniverse(data);
+      const worlds = universe ? buildWorldsFromSave(universe, cs) : [];
+      applyStarsea(cs, file.name, saveMeta, worlds);
       status.textContent = "已载入 " + file.name + "（" + fmt(rows.length) + " 个档案）";
     } catch (err) {
       console.error(err);

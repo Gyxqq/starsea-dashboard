@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import base64
 import json
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -144,8 +145,219 @@ def system_counts(rows: list[dict]) -> dict[str, int]:
     return dict(sorted(counts.items(), key=lambda kv: (-kv[1], kv[0])))
 
 
+def _world_systems(universe: dict) -> dict[str, dict]:
+    systems: dict[str, dict] = {}
+    for s in ((universe.get("world_seed") or {}).get("systems") or []):
+        if s.get("id"):
+            systems[s["id"]] = s
+    for entry in ((universe.get("procedural_expansion") or {}).get("systems") or []):
+        s = entry.get("system") or {}
+        if s.get("id"):
+            systems[s["id"]] = s
+    return systems
+
+
+def _world_defs(universe: dict):
+    """产出 (world, resource_nodes, source)。"""
+    ws = universe.get("world_seed") or {}
+    for entry in ws.get("worlds") or []:
+        w = entry.get("world") or {}
+        if w.get("id"):
+            yield w, entry.get("resource_nodes") or [], "world_seed"
+    pe = universe.get("procedural_expansion") or {}
+    for entry in pe.get("systems") or []:
+        frozen = entry.get("frozen_worlds") or []
+        if frozen:
+            for f in frozen:
+                w = f.get("world") or {}
+                if w.get("id"):
+                    yield w, f.get("resource_nodes") or [], "procedural_expansion"
+        else:
+            for w in entry.get("worlds") or []:
+                if w.get("id"):
+                    yield w, [], "procedural_expansion"
+
+
+def _guess_system_id(world_id: str) -> str | None:
+    wid = world_id.split(":", 1)[1] if ":" in world_id else world_id
+    m = re.match(r"(frontier-grid2-\d+)-p\d+$", wid)
+    return m.group(1) if m else None
+
+
+FLAT_MATERIAL_FIELDS = (
+    ("metal", "metal_bps"), ("carbon", "carbon_bps"),
+    ("silica_ore", "silica_bps"), ("ice", "ice_bps"),
+    ("titanium_ore", "titanium_bps"),
+)
+
+
+def _extract_materials(c: dict) -> tuple[dict, str | None]:
+    """兼容新版 per_material_bps 与旧版扁平 *_bps 字段。"""
+    ext = c.get("extraction") or {}
+    pm = ext.get("per_material_bps") or {}
+    if pm:
+        totals = {k: int(v or 0) for k, v in pm.items() if int(v or 0)}
+    else:
+        totals = {}
+        for item, field in FLAT_MATERIAL_FIELDS:
+            v = int(ext.get(field) or 0)
+            if v:
+                totals[item] = v
+        sid = ext.get("specialty_item_id")
+        sv = int(ext.get("specialty_bps") or 0)
+        if sid and sv:
+            totals[sid] = sv
+    primary = c.get("mining_primary_item") or ext.get("specialty_item_id")
+    if not primary and totals:
+        primary = max(totals, key=totals.get)
+    return totals, primary
+
+
+def _world_row(world: dict, system: dict, runtime: dict | None,
+               star_sys: dict | None, source: str,
+               nodes: list | None = None) -> dict:
+    c = world.get("conditions") or {}
+    mat_totals, primary = _extract_materials(c)
+    mats = sorted(mat_totals)
+    sys_cond = system.get("conditions") or {}
+    sid = system.get("id") or world.get("system_id")
+    sim = (runtime or {}).get("simulation") if runtime else None
+    step = None
+    if isinstance(sim, dict):
+        step = (sim.get("state") or {}).get("step")
+    return {
+        "id": world.get("id"),
+        "label": world.get("label") or world.get("id"),
+        "wtype": world.get("world_type"),
+        "env": world.get("environment_id"),
+        "bodyKind": c.get("body_kind"),
+        "site": c.get("site_kind"),
+        "canvas": c.get("canvas_kind"),
+        "orbit": int(c.get("orbit_index") or 0),
+        "size": int(c.get("size_bps") or 0),
+        "hab": int(c.get("habitability_bps") or 0),
+        "pop": int(c.get("natural_population_capacity") or 0),
+        "mine": sum(mat_totals.values()),
+        "minePrimary": primary,
+        "matCount": len(mats),
+        "mats": mats,
+        "matTotals": mat_totals,
+        "nodes": len(nodes or []),
+        "systemId": sid,
+        "sysLabel": system.get("label"),
+        "syskind": sys_cond.get("system_kind_id"),
+        "sclass": system.get("stellar_class"),
+        "dist": int(system.get("distance_milli_light_years") or 0),
+        "cap": int(sys_cond.get("stellar_capacity_kw") or 0),
+        "deployed": bool(runtime and runtime.get("deployed")),
+        "runtime": bool(runtime),
+        "step": step,
+        "scene": world.get("scenario_id"),
+        "source": source,
+        "discovered": bool(star_sys and star_sys.get("discovered")),
+        "reachable": bool(star_sys and star_sys.get("reachable")),
+    }
+
+
+def _slot_world_meta(parser: StarseaParser) -> dict[str, dict]:
+    """cosmic_starsea 槽位里已落地天体的元数据（用于 4 个运行时独有天体）。"""
+    out: dict[str, dict] = {}
+    for slot in (parser.starsea.get("slots") or {}).values():
+        mat = slot.get("materialized") or {}
+        system = mat.get("system") or {}
+        ids = slot.get("world_ids") or []
+        frozen = mat.get("frozen_worlds") or []
+        worlds = mat.get("worlds") or []
+        for i, wid in enumerate(ids):
+            world = {}
+            nodes = []
+            if i < len(frozen):
+                world = frozen[i].get("world") or {}
+                nodes = frozen[i].get("resource_nodes") or []
+            elif i < len(worlds):
+                world = worlds[i] or {}
+            out[wid] = {"world": world, "system": system, "nodes": nodes}
+    return out
+
+
+def build_worlds(parser: StarseaParser) -> list[dict]:
+    """存档内的非星海天体：world_seed + procedural_expansion + 运行时独有天体。"""
+    universe = parser.raw.get("universe") or {}
+    systems = _world_systems(universe)
+    runtime = {w["id"]: w for w in (universe.get("worlds") or []) if w.get("id")}
+    star_systems = {s["id"]: s for s in (universe.get("star_systems") or []) if s.get("id")}
+    notes = universe.get("world_notes") or {}
+    active_id = universe.get("active_world_id")
+    slot_meta = _slot_world_meta(parser)
+
+    defs: dict[str, tuple] = {}
+    for world, nodes, source in _world_defs(universe):
+        defs[world["id"]] = (world, nodes, source)
+
+    def make(world, system, source, nodes=None, override_id=None, override_label=None):
+        sid = system.get("id") or world.get("system_id")
+        row = _world_row(world, system, runtime.get(world.get("id")),
+                         star_systems.get(sid), source, nodes)
+        if override_id:
+            row["id"] = override_id
+        if override_label:
+            row["label"] = override_label
+        row["runtimeOnly"] = row["id"] not in defs
+        row["active"] = row["id"] == active_id
+        custom = ((notes.get(row["id"]) or {}).get("custom_name") or "").strip()
+        if custom:
+            row["label"] = custom
+        return row
+
+    out: list[dict] = []
+    seen: set[str] = set()
+    for wid, (world, nodes, source) in defs.items():
+        sid = world.get("system_id")
+        out.append(make(world, systems.get(sid) or {}, source, nodes))
+        seen.add(wid)
+
+    for wid, rt in runtime.items():
+        if wid in seen:
+            continue
+        if wid in slot_meta:
+            meta = slot_meta[wid]
+            world = dict(meta["world"])
+            world.setdefault("id", wid)
+            out.append(make(world, meta["system"], "cosmic_starsea", meta["nodes"]))
+        elif wid.startswith("orbital-platform:"):
+            base_id = wid.split(":", 1)[1]
+            base = defs.get(base_id)
+            if base:
+                world, nodes, _ = base
+                sid = world.get("system_id")
+                out.append(make(world, systems.get(sid) or {}, "special", nodes,
+                                override_id=wid,
+                                override_label=(world.get("label") or base_id) + " · 轨道平台"))
+            else:
+                out.append(make({"id": wid, "label": wid}, {}, "special"))
+        else:
+            out.append(make({"id": wid, "label": wid}, {}, "special"))
+
+    out.sort(key=lambda r: (r["sysLabel"] is None, r["sysLabel"] or "",
+                            r["systemId"] or "", r["orbit"], r["label"] or ""))
+    return out
+
+
+def build_world_meta(worlds: list[dict]) -> dict:
+    systems = {w["systemId"] for w in worlds if w.get("systemId")}
+    mats = {m for w in worlds for m in w["mats"]}
+    return {
+        "worldCount": len(worlds),
+        "systemCount": len(systems),
+        "deployedCount": sum(1 for w in worlds if w["deployed"]),
+        "materialCount": len(mats),
+    }
+
+
 def build_payload(parser: StarseaParser, rows: list[dict]) -> dict:
     cs = parser.starsea
+    worlds = build_worlds(parser)
+    world_meta = build_world_meta(worlds)
     kinds: dict[str, int] = {}
     rarities: dict[str, int] = {}
     for r in rows:
@@ -177,6 +389,8 @@ def build_payload(parser: StarseaParser, rows: list[dict]) -> dict:
         "materials": material_counts(rows),
         "systems": system_counts(rows),
         "rows": rows,
+        "worlds": worlds,
+        "worldMeta": world_meta,
     }
 
 
@@ -208,6 +422,8 @@ def empty_payload() -> dict:
         "materials": {},
         "systems": {},
         "rows": [],
+        "worlds": [],
+        "worldMeta": {"worldCount": 0, "systemCount": 0, "deployedCount": 0, "materialCount": 0},
     }
 
 
