@@ -113,7 +113,7 @@ def build_rows(parser: StarseaParser) -> list[dict]:
             "sclass": defn.get("stellar_class") or system.get("stellar_class"),
             "pkind": defn.get("planet_kind_id"),
             "dist": int(system.get("distance_milli_light_years") or 0),
-            "cap": cap,
+            "cap": cap * 1000,  # 存档字段为 kW，界面统一按瓦（W）展示
             "size": total_size,
             "sizeMax": size_max,
             "mine": total_mine,
@@ -248,7 +248,7 @@ def _world_row(world: dict, system: dict, runtime: dict | None,
         "syskind": sys_cond.get("system_kind_id"),
         "sclass": system.get("stellar_class"),
         "dist": int(system.get("distance_milli_light_years") or 0),
-        "cap": int(sys_cond.get("stellar_capacity_kw") or 0),
+        "cap": int(sys_cond.get("stellar_capacity_kw") or 0) * 1000,  # kW -> W
         "deployed": bool(runtime and runtime.get("deployed")),
         "runtime": bool(runtime),
         "step": step,

@@ -819,7 +819,7 @@
   const METRICS = {
     size: { label: "规模（x）", value: r => r.size / 1e4, fmt: v => shortNum(v) + "x" },
     mine: { label: "采矿速率", value: r => r.mine, fmt: fmt },
-    cap: { label: "恒星发电量（千瓦）", value: r => r.cap, fmt: compact },
+    cap: { label: "恒星发电量（瓦）", value: r => r.cap, fmt: compact },
     dist: { label: "距离（毫光年）", value: r => r.dist, fmt: fmt },
     pops: { label: "人口上限", value: r => r.pops, fmt: fmt },
     matCount: { label: "资源种类", value: r => r.matCount, fmt: fmt },
@@ -2493,7 +2493,7 @@
 
   function exportWorldCSV() {
     const head = ["天体", "天体 ID", "类型", "环境", "星系", "恒星分类", "星系类型",
-      "规模（×10000）", "采矿速率", "人口上限", "宜居度", "恒星发电量（千瓦）", "资源种类",
+      "规模（×10000）", "采矿速率", "人口上限", "宜居度", "恒星发电量（瓦）", "资源种类",
       "主采矿产物", "部署状态", "资源明细", "距离（毫光年）"];
     const sorted = filteredWorlds.slice().sort((a, b) => {
       const va = sortValueWorld(a, state.sortKey), vb = sortValueWorld(b, state.sortKey);
@@ -2525,7 +2525,7 @@
   function exportCSV() {
     const head = ["档案", "档案编号", "创建序号", "创建步数", "档案类型", "天体类型",
       "稀有度", "强度", "星系类型", "天体数", "规模（×10000）", "采矿速率", "人口上限", "宜居度",
-      "恒星发电量（千瓦）", "资源种类", "主采矿产物", "资源明细", "系统名称"];
+      "恒星发电量（瓦）", "资源种类", "主采矿产物", "资源明细", "系统名称"];
     const rowsSorted = tableBodies.slice().sort((a, b) => {
       const va = sortValue(a, state.sortKey), vb = sortValue(b, state.sortKey);
       let c = typeof va === "string" ? String(va).localeCompare(String(vb)) : (va || 0) - (vb || 0);
@@ -2595,7 +2595,7 @@
     grid.appendChild(kv("天体数", r.body));
     grid.appendChild(kv("规模", isStar ? "—" : sizeX(r.size)));
     grid.appendChild(kv("采矿速率", isStar ? "—" : fmt(r.mine)));
-    grid.appendChild(kv("恒星发电量（千瓦）", compact(r.cap)));
+    grid.appendChild(kv("恒星发电量（瓦）", compact(r.cap)));
     grid.appendChild(kv("距离（毫光年）", fmt(r.dist)));
     grid.appendChild(kv("人口上限", isStar ? "—" : fmt(r.pops)));
     grid.appendChild(kv("资源种类", isStar ? "—" : r.matCount));
@@ -2674,7 +2674,7 @@
     grid.appendChild(kv("天体 ID", w.id, true));
     grid.appendChild(kv("星系", shortLabel(w.sysLabel)));
     grid.appendChild(kv("恒星分类", zh(STELLAR_ZH, w.sclass)));
-    grid.appendChild(kv("恒星发电量（千瓦）", compact(w.cap)));
+    grid.appendChild(kv("恒星发电量（瓦）", compact(w.cap)));
     grid.appendChild(kv("星系类型", zh(SYS_ZH, w.syskind)));
     grid.appendChild(kv("距离（毫光年）", fmt(w.dist)));
     grid.appendChild(kv("规模", sizeX(w.size)));
@@ -2744,7 +2744,7 @@
     });
     renderScatter("scatterCapacityBase", "scatterCapacityOverlay", {
       xKey: "dist", yKey: "cap", xLog: false, yLog: true,
-      xLabel: "距离（毫光年）", yLabel: "恒星发电量（千瓦，对数）",
+      xLabel: "距离（毫光年）", yLabel: "恒星发电量（瓦，对数）",
       xFmt: fmt, yFmt: compact, yTickFmt: powLabel, height: 348
     });
     renderTable();
@@ -2897,7 +2897,7 @@
         sclass: defn.stellar_class || system.stellar_class,
         pkind: defn.planet_kind_id,
         dist: Number(system.distance_milli_light_years || 0),
-        cap,
+        cap: cap * 1000,  // 存档字段为 kW，界面统一按瓦（W）展示
         size: totalSize,
         sizeMax,
         mine: totalMine,
@@ -2973,7 +2973,7 @@
       systemId: sid || null, sysLabel: system.label || null, syskind: sc.system_kind_id || null,
       sclass: system.stellar_class || null,
       dist: Number(system.distance_milli_light_years || 0),
-      cap: Number(sc.stellar_capacity_kw || 0),
+      cap: Number(sc.stellar_capacity_kw || 0) * 1000,  // kW -> W
       deployed: !!(runtime && runtime.deployed), runtime: !!runtime, step,
       scene: world.scenario_id || null, source,
       discovered: !!(starSys && starSys.discovered), reachable: !!(starSys && starSys.reachable)

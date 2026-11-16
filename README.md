@@ -398,7 +398,7 @@ cs = save["universe"]["cosmic_starsea"]
 | `solar` | 所有世界 `solar_output_bps` 最大值 |
 | `wind` | 所有世界 `wind_output_bps` 最大值 |
 | `hab` | 所有世界 `habitability_bps` 最大值 |
-| `cap` | 恒星发电量：系统 `stellar_capacity_kw`（= `stellar_energy_by_system[].maximum_power_kw`）；缺失时取世界最大值 |
+| `cap` | 恒星发电量：系统 `stellar_capacity_kw`（= `stellar_energy_by_system[].maximum_power_kw`）乘以 1000 后按瓦（W）存储；缺失时取世界最大值 |
 | `dist` | 系统 `distance_milli_light_years` |
 | `matCount` | 所有世界材料集合大小 |
 | `mats` | 去重后的材料 key 列表 |
@@ -523,7 +523,7 @@ data/m0-slot.json
 - 行星档案显示行星本体；恒星档案显示恒星本体；星系档案显示整个星系（内含天体不拆行）
 - 列：序、档案、档案类型、天体类型、稀有度、强度、星系类型、规模、采矿速率、人口上限、宜居度、恒星发电量、资源
 - 规模/采矿/人口/宜居/资源：行星取该天体，恒星显示“—”，星系取内含天体的聚合值
-- 恒星发电量：取档案所在星系的 `stellar_capacity_kw`（即恒星 `maximum_power_kw`），以 `k/M/G/T/P` 紧凑显示；行星行显示其所属恒星的发电量
+- 恒星发电量：取档案所在星系的 `stellar_capacity_kw`（即恒星 `maximum_power_kw`，单位 kW），换算为瓦（×1000）后以 `k/M/G/T/P` 紧凑显示；行星行显示其所属恒星的发电量
 - 规模显示除以 10000 并加 `x`（10000 → `1x`，20000 → `2x`）；指标范围选“规模（x）”时，输入框提示“最小 x / 最大 x”，筛选值也按同一口径（输入 1–4 即 1x–4x）
 - “指标范围”支持添加多条条件：每条包含指标、最小/最大、删除按钮；多条条件为“且”关系
 - 资源列是下拉按钮：`N 种资源 ▾`，行星显示该天体资源，星系显示全部内含资源的合计
