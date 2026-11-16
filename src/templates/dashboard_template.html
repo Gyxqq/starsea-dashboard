@@ -620,7 +620,7 @@
 
     <div class="card span-12">
       <div class="card-head">
-        <div><div class="card-title">恒星能量 × 距离</div><div class="card-sub">纵轴为对数刻度；点色 = 类型</div></div>
+        <div><div class="card-title">恒星发电量 × 距离</div><div class="card-sub">纵轴为对数刻度；点色 = 类型</div></div>
         <div class="legend">
           <span class="legend-item"><i class="dot kind-planet"></i>行星</span>
           <span class="legend-item"><i class="dot kind-star"></i>恒星</span>
@@ -628,7 +628,7 @@
         </div>
       </div>
       <div class="canvas-wrap">
-        <canvas id="scatterCapacityBase" class="scatter-base" role="img" aria-label="距离与恒星能量散点图"></canvas>
+        <canvas id="scatterCapacityBase" class="scatter-base" role="img" aria-label="距离与恒星发电量散点图"></canvas>
         <canvas id="scatterCapacityOverlay" class="scatter-overlay"></canvas>
       </div>
     </div>
@@ -819,7 +819,7 @@
   const METRICS = {
     size: { label: "规模（x）", value: r => r.size / 1e4, fmt: v => shortNum(v) + "x" },
     mine: { label: "采矿速率", value: r => r.mine, fmt: fmt },
-    cap: { label: "恒星能量（千瓦）", value: r => r.cap, fmt: compact },
+    cap: { label: "恒星发电量（千瓦）", value: r => r.cap, fmt: compact },
     dist: { label: "距离（毫光年）", value: r => r.dist, fmt: fmt },
     pops: { label: "人口上限", value: r => r.pops, fmt: fmt },
     matCount: { label: "资源种类", value: r => r.matCount, fmt: fmt },
@@ -2082,6 +2082,7 @@
     { key: "mine", label: "采矿速率", num: true, fmt: b => fmt(b.mine) },
     { key: "pop", label: "人口上限", num: true, fmt: b => fmt(b.pop) },
     { key: "hab", label: "宜居度", num: true, fmt: b => fmt(b.hab) },
+    { key: "cap", label: "恒星发电量", num: true, fmt: b => b.r.cap ? compact(b.r.cap) : "—" },
     { key: "matCount", label: "资源", num: true }
   ];
 
@@ -2095,6 +2096,7 @@
     { key: "mine", label: "采矿速率", num: true, fmt: w => fmt(w.mine) },
     { key: "pop", label: "人口上限", num: true, fmt: w => fmt(w.pop) },
     { key: "hab", label: "宜居度", num: true, fmt: w => fmt(w.hab) },
+    { key: "cap", label: "恒星发电量", num: true, fmt: w => w.cap ? compact(w.cap) : "—" },
     { key: "matCount", label: "资源", num: true },
     { key: "deployed", label: "部署", fmt: w => w.deployed ? "已部署" : "未部署" }
   ];
@@ -2105,7 +2107,7 @@
     ["body", "天体数"], ["syskind", "星系类型"], ["sclass", "恒星分类"],
     ["wtype", "天体类型"], ["size", "规模"], ["mine", "采矿速率"],
     ["pops", "人口上限"], ["hab", "宜居度"], ["matCount", "资源种类"],
-    ["cap", "恒星能量"], ["dist", "距离"], ["seed", "种子"]
+    ["cap", "恒星发电量"], ["dist", "距离"], ["seed", "种子"]
   ];
 
   const SORT_OPTS_W = [
@@ -2268,7 +2270,7 @@
     const panel = elem("div", { class: "res-panel" });
     if (!b.matTotals) {
       panel.appendChild(elem("div", { class: "res-head" },
-        "恒星本体 · " + bodyTypeLabel(b) + " · 恒星能量 " + compact(b.r.cap)));
+        "恒星本体 · " + bodyTypeLabel(b) + " · 恒星发电量 " + compact(b.r.cap)));
       return panel;
     }
     if (b.isSystem) {
@@ -2491,7 +2493,7 @@
 
   function exportWorldCSV() {
     const head = ["天体", "天体 ID", "类型", "环境", "星系", "恒星分类", "星系类型",
-      "规模（×10000）", "采矿速率", "人口上限", "宜居度", "资源种类",
+      "规模（×10000）", "采矿速率", "人口上限", "宜居度", "恒星发电量（千瓦）", "资源种类",
       "主采矿产物", "部署状态", "资源明细", "距离（毫光年）"];
     const sorted = filteredWorlds.slice().sort((a, b) => {
       const va = sortValueWorld(a, state.sortKey), vb = sortValueWorld(b, state.sortKey);
@@ -2507,7 +2509,7 @@
       lines.push([
         w.label, w.id, zh(WORLD_ZH, w.wtype), zh(ENV_ZH, w.env), shortLabel(w.sysLabel),
         zh(STELLAR_ZH, w.sclass), zh(SYS_ZH, w.syskind), w.size / 1e4, w.mine, w.pop, w.hab,
-        w.matCount, zh(MATERIAL_ZH, w.minePrimary), w.deployed ? "已部署" : "未部署",
+        w.cap || "", w.matCount, zh(MATERIAL_ZH, w.minePrimary), w.deployed ? "已部署" : "未部署",
         detail, w.dist
       ].map(csvCell).join(","));
     });
@@ -2523,7 +2525,7 @@
   function exportCSV() {
     const head = ["档案", "档案编号", "创建序号", "创建步数", "档案类型", "天体类型",
       "稀有度", "强度", "星系类型", "天体数", "规模（×10000）", "采矿速率", "人口上限", "宜居度",
-      "资源种类", "主采矿产物", "资源明细", "系统名称"];
+      "恒星发电量（千瓦）", "资源种类", "主采矿产物", "资源明细", "系统名称"];
     const rowsSorted = tableBodies.slice().sort((a, b) => {
       const va = sortValue(a, state.sortKey), vb = sortValue(b, state.sortKey);
       let c = typeof va === "string" ? String(va).localeCompare(String(vb)) : (va || 0) - (vb || 0);
@@ -2540,7 +2542,7 @@
       lines.push([
         b.label, r.id, r.seq, r.step, KIND_LABEL[r.kind] || r.kind, bodyTypeLabel(b),
         RARITY_LABEL[r.rarity] || r.rarity, r.strength, zh(SYS_ZH, r.syskind),
-        r.body, b.size == null ? "" : b.size / 1e4, b.mine, b.pop, b.hab, b.matCount, primary, matDetail,
+        r.body, b.size == null ? "" : b.size / 1e4, b.mine, b.pop, b.hab, r.cap || "", b.matCount, primary, matDetail,
         shortLabel(r.sysLabel)
       ].map(csvCell).join(","));
     });
@@ -2593,7 +2595,7 @@
     grid.appendChild(kv("天体数", r.body));
     grid.appendChild(kv("规模", isStar ? "—" : sizeX(r.size)));
     grid.appendChild(kv("采矿速率", isStar ? "—" : fmt(r.mine)));
-    grid.appendChild(kv("恒星能量（千瓦）", compact(r.cap)));
+    grid.appendChild(kv("恒星发电量（千瓦）", compact(r.cap)));
     grid.appendChild(kv("距离（毫光年）", fmt(r.dist)));
     grid.appendChild(kv("人口上限", isStar ? "—" : fmt(r.pops)));
     grid.appendChild(kv("资源种类", isStar ? "—" : r.matCount));
@@ -2672,6 +2674,7 @@
     grid.appendChild(kv("天体 ID", w.id, true));
     grid.appendChild(kv("星系", shortLabel(w.sysLabel)));
     grid.appendChild(kv("恒星分类", zh(STELLAR_ZH, w.sclass)));
+    grid.appendChild(kv("恒星发电量（千瓦）", compact(w.cap)));
     grid.appendChild(kv("星系类型", zh(SYS_ZH, w.syskind)));
     grid.appendChild(kv("距离（毫光年）", fmt(w.dist)));
     grid.appendChild(kv("规模", sizeX(w.size)));
@@ -2741,7 +2744,7 @@
     });
     renderScatter("scatterCapacityBase", "scatterCapacityOverlay", {
       xKey: "dist", yKey: "cap", xLog: false, yLog: true,
-      xLabel: "距离（毫光年）", yLabel: "恒星能量（千瓦，对数）",
+      xLabel: "距离（毫光年）", yLabel: "恒星发电量（千瓦，对数）",
       xFmt: fmt, yFmt: compact, yTickFmt: powLabel, height: 348
     });
     renderTable();

@@ -1,6 +1,7 @@
 # 星海仪表盘常用命令
 #
-# 需要 GNU Make；Windows 可用 Git Bash 环境，或：
+# 需要 GNU Make 与 Python；文件操作均通过 Python 完成，
+# 因此在 PowerShell / cmd / Git Bash 下都可直接运行。
 #   winget install ezwinports.make
 #   choco install make
 #
@@ -12,10 +13,6 @@ INPUT    ?= data/m0-slot.json
 SHELL_OUT := dist/starsea_dashboard.html
 DATA_OUT  := dist/starsea_dashboard_data.html
 PAGES     := docs/index.html
-
-ifeq ($(OS),Windows_NT)
-SHELL := bash
-endif
 
 .DEFAULT_GOAL := help
 .PHONY: help build build-shell build-data pages pages-shell pages-data publish publish-data parser list serve clean
@@ -48,22 +45,22 @@ build-data:
 pages: pages-shell
 
 pages-shell: build-shell
-	cp $(SHELL_OUT) $(PAGES)
-	@echo "已更新 $(PAGES)（空壳）"
+	$(PYTHON) -c "import shutil; shutil.copyfile('$(SHELL_OUT)', '$(PAGES)')"
+	@echo Updated $(PAGES) - shell
 
 pages-data: build-data
-	cp $(DATA_OUT) $(PAGES)
-	@echo "已更新 $(PAGES)（数据版）"
+	$(PYTHON) -c "import shutil; shutil.copyfile('$(DATA_OUT)', '$(PAGES)')"
+	@echo Updated $(PAGES) - data
 
 publish: pages-shell
-	git add $(PAGES)
-	git commit -m "Update GitHub Pages (empty shell)" || true
-	git push origin main
+	$(PYTHON) -c "import subprocess; subprocess.run(['git', 'add', '$(PAGES)'], check=True)"
+	$(PYTHON) -c "import subprocess; subprocess.run(['git', 'commit', '-m', 'Update GitHub Pages (empty shell)'])"
+	$(PYTHON) -c "import subprocess; subprocess.run(['git', 'push', 'origin', 'main'], check=True)"
 
 publish-data: pages-data
-	git add $(PAGES)
-	git commit -m "Update GitHub Pages (data)" || true
-	git push origin main
+	$(PYTHON) -c "import subprocess; subprocess.run(['git', 'add', '$(PAGES)'], check=True)"
+	$(PYTHON) -c "import subprocess; subprocess.run(['git', 'commit', '-m', 'Update GitHub Pages (data)'])"
+	$(PYTHON) -c "import subprocess; subprocess.run(['git', 'push', 'origin', 'main'], check=True)"
 
 parser:
 	$(PYTHON) src/starsea_parser.py summary
@@ -76,5 +73,4 @@ serve:
 	cd docs && $(PYTHON) -m http.server 8000
 
 clean:
-	rm -f dist/*.html dist/cosmic_starsea.json
-	rm -rf src/__pycache__
+	$(PYTHON) -c "import pathlib, shutil; [p.unlink() for p in pathlib.Path('dist').glob('*.html')]; pathlib.Path('dist/cosmic_starsea.json').unlink(missing_ok=True); shutil.rmtree('src/__pycache__', ignore_errors=True)"
