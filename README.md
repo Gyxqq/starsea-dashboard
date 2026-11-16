@@ -4,6 +4,10 @@
 
 当前数据：**11,404 个档案 / 12,546 个本体天体 / 20 种资源**，支持新版 brotli 压缩存档与旧版明文存档。
 
+**在线页面**：<https://gyxqq.github.io/starsea-dashboard/>
+
+页面是默认空壳（不含存档数据），打开后通过「载入 JSON」加载自己的存档；`docs/index.html` 由 `dist/starsea_dashboard.html` 复制而来。如需发布内嵌数据版，把 `dist/starsea_dashboard_data.html` 复制为 `docs/index.html` 后提交即可。
+
 ---
 
 ## 目录
