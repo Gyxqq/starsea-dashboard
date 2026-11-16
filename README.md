@@ -63,6 +63,25 @@ python src/build_starsea_dashboard.py -i data/m0-slot.json
 
 两者都无需服务器。
 
+### Makefile（可选）
+
+项目根目录提供 `Makefile`，需要 GNU Make（Windows 可先 `winget install ezwinports.make` 或 `choco install make`）：
+
+```bash
+make build          # 空壳 + 数据版
+make build-shell    # 只构建空壳
+make build-data     # 只构建数据版
+make pages          # 用空壳更新 docs/index.html
+make pages-data     # 用数据版更新 docs/index.html
+make publish        # 空壳更新并 push 到 GitHub Pages
+make publish-data   # 数据版更新并 push
+make parser         # 存档 summary
+make serve          # 本地预览 docs（http://localhost:8000）
+make clean          # 清理构建产物
+```
+
+可通过变量覆盖默认值：`make build-data INPUT=other.json PYTHON=py`。
+
 ---
 
 ## 文件结构
@@ -507,7 +526,8 @@ data/m0-slot.json
 - 规模显示除以 10000 并加 `x`（10000 → `1x`，20000 → `2x`）；指标范围选“规模（x）”时，输入框提示“最小 x / 最大 x”，筛选值也按同一口径（输入 1–4 即 1x–4x）
 - “指标范围”支持添加多条条件：每条包含指标、最小/最大、删除按钮；多条条件为“且”关系
 - 资源列是下拉按钮：`N 种资源 ▾`，行星显示该天体资源，星系显示全部内含资源的合计
-- 点击表头排序；点击行打开档案详情
+- 排序：点击表头，或使用表头工具栏的「排序」下拉选择字段，再用「升序 ▲ / 降序 ▼」切换方向；可选创建序列、步数、编号、类型、稀有度、强度、天体数、星系类型、恒星分类、天体类型、规模、采矿、人口、宜居、资源、恒星能量、距离、种子
+- 点击行打开档案详情
 - 分页 25 / 50 / 100 / 200
 - CSV 导出按当前筛选与排序导出全部档案
 
@@ -522,6 +542,7 @@ data/m0-slot.json
 - KPI：已部署 / 星系数量 / 平均规模 / 资源种类
 - 图表：天体类型、环境、部署状态、恒星分类、规模 × 采矿速率、资源出现频次
 - 天体表：天体、类型、星系、恒星分类、环境、规模、采矿速率、人口上限、宜居度、资源、部署状态
+- 排序：点击表头，或使用「排序」下拉 + 升序/降序按钮；可选名称、类型、星系、恒星分类、星系类型、环境、规模、采矿、人口、宜居、资源、部署、距离、轨道、运行时步数、来源、编号
 - 点击行打开天体详情；CSV 导出为 `存档天体_筛选结果.csv`
 
 ### 搜索与筛选

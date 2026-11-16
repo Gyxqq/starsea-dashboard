@@ -681,6 +681,10 @@
       <div class="card-title" id="tableTitle">档案表</div>
       <div class="card-sub" id="tableSub">每个档案一行 · 星系档案显示内含天体聚合值 · 点击表头排序 · 点击资源展开明细 · 点击行查看档案详情</div>
       <div class="topbar-spacer"></div>
+      <label class="filter-label" for="sortKey" style="display:flex;align-items:center;gap:6px">排序
+        <select id="sortKey"></select>
+      </label>
+      <button class="btn" id="sortDirBtn" type="button">升序 ▲</button>
       <label class="filter-label" for="pageSize" style="display:flex;align-items:center;gap:6px">每页
         <select id="pageSize">
           <option value="25">25</option>
@@ -1243,6 +1247,7 @@
       state.sortDir = "asc";
       refreshWorldOptions();
       computeWorldDomains();
+      populateSortSelect();
       buildWorldTableHead();
       $("#tableTitle").textContent = "存档天体表";
       $("#tableSub").textContent =
@@ -1252,6 +1257,7 @@
       state.sortDir = "asc";
       refreshOptions();
       computeDomains();
+      populateSortSelect();
       buildTableHead();
       $("#tableTitle").textContent = "档案表";
       $("#tableSub").textContent =
@@ -1327,6 +1333,18 @@
         });
       });
     $("#resetBtn").addEventListener("click", resetFilters);
+    $("#sortKey").addEventListener("change", e => {
+      state.sortKey = e.target.value;
+      state.page = 0;
+      updateSortMarks();
+      renderActiveTable();
+    });
+    $("#sortDirBtn").addEventListener("click", () => {
+      state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
+      state.page = 0;
+      updateSortMarks();
+      renderActiveTable();
+    });
     $("#pageSize").addEventListener("change", e => {
       state.pageSize = +e.target.value;
       state.page = 0;
@@ -1349,6 +1367,7 @@
   function initControls() {
     refreshOptions();
     refreshWorldOptions();
+    populateSortSelect();
     bindControls();
   }
 
@@ -2064,13 +2083,50 @@
     { key: "deployed", label: "部署", fmt: w => w.deployed ? "已部署" : "未部署" }
   ];
 
+  const SORT_OPTS = [
+    ["seq", "创建序列"], ["step", "创建步数"], ["id", "档案编号"],
+    ["kind", "档案类型"], ["rarity", "稀有度"], ["strength", "强度"],
+    ["body", "天体数"], ["syskind", "星系类型"], ["sclass", "恒星分类"],
+    ["wtype", "天体类型"], ["size", "规模"], ["mine", "采矿速率"],
+    ["pops", "人口上限"], ["hab", "宜居度"], ["matCount", "资源种类"],
+    ["cap", "恒星能量"], ["dist", "距离"], ["seed", "种子"]
+  ];
+
+  const SORT_OPTS_W = [
+    ["label", "天体名称"], ["wtype", "类型"], ["system", "星系"],
+    ["sclass", "恒星分类"], ["syskind", "星系类型"], ["env", "环境"],
+    ["size", "规模"], ["mine", "采矿速率"], ["pop", "人口上限"],
+    ["hab", "宜居度"], ["matCount", "资源种类"], ["deployed", "部署状态"],
+    ["dist", "距离"], ["orbit", "轨道"], ["step", "运行时步数"],
+    ["source", "来源"], ["id", "天体编号"]
+  ];
+
+  function populateSortSelect() {
+    const sel = $("#sortKey");
+    if (!sel) return;
+    const opts = state.view === "world" ? SORT_OPTS_W : SORT_OPTS;
+    sel.textContent = "";
+    opts.forEach(([value, label]) =>
+      sel.appendChild(elem("option", { value }, label)));
+    if (!opts.some(([value]) => value === state.sortKey))
+      state.sortKey = opts[0][0];
+    sel.value = state.sortKey;
+  }
+
   function sortValueWorld(w, key) {
     if (key === "wtype") return zh(WORLD_ZH, w.wtype);
     if (key === "system") return w.sysLabel || "";
     if (key === "sclass") return zh(STELLAR_ZH, w.sclass);
+    if (key === "syskind") return zh(SYS_ZH, w.syskind);
     if (key === "env") return zh(ENV_ZH, w.env);
     if (key === "deployed") return w.deployed ? 1 : 0;
+    if (key === "source") return zh(WORLD_SOURCE_ZH, w.source);
+    if (key === "dist") return w.dist || 0;
+    if (key === "orbit") return w.orbit || 0;
+    if (key === "step") return w.step == null ? 0 : w.step;
+    if (key === "id") return w.id || "";
     if (key === "label") return w.label || "";
+    if (key === "matCount") return w.matCount || 0;
     return w[key] || 0;
   }
 
@@ -2079,11 +2135,19 @@
     if (key === "kind") return KIND_ORDER.indexOf(r.kind);
     if (key === "rarity") return RARITY_ORDER.indexOf(r.rarity);
     if (key === "seq") return r.seq;
+    if (key === "step") return r.step || 0;
+    if (key === "id") return r.id || "";
     if (key === "strength") return r.strength;
     if (key === "syskind") return zh(SYS_ZH, r.syskind);
+    if (key === "sclass") return zh(STELLAR_ZH, r.sclass);
+    if (key === "cap") return r.cap || 0;
+    if (key === "dist") return r.dist || 0;
+    if (key === "seed") return r.seed || "";
+    if (key === "body") return r.body || 0;
+    if (key === "pops") return r.pops || 0;
     if (key === "label") return b.label || "";
     if (key === "wtype") return bodyTypeLabel(b);
-    return b[key];
+    return b[key] || 0;
   }
 
   function activeCols() {
@@ -2120,6 +2184,10 @@
       if (c.key === state.sortKey) th.setAttribute("data-sort", state.sortDir);
       else th.removeAttribute("data-sort");
     });
+    const sel = $("#sortKey");
+    if (sel) sel.value = state.sortKey;
+    const dir = $("#sortDirBtn");
+    if (dir) dir.textContent = state.sortDir === "asc" ? "升序 ▲" : "降序 ▼";
   }
 
   function maxPage() {
@@ -3013,6 +3081,7 @@
     refreshWorldOptions();
     computeDomains();
     computeWorldDomains();
+    populateSortSelect();
     if (state.view === "world") buildWorldTableHead(); else buildTableHead();
     updateSortMarks();
     updateMasthead();
