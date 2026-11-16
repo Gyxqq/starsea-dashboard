@@ -1,0 +1,2037 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>星海档案 · 宇宙星海</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    color-scheme: light;
+    --surface-0: #f9f9f7;
+    --surface-1: #fcfcfb;
+    --surface-2: #f0efec;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #898781;
+    --grid: #e1e0d9;
+    --axis: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+    --ord-1: #86b6ef;
+    --ord-2: #5598e7;
+    --ord-3: #2a78d6;
+    --ord-4: #1c5cab;
+    --accent: #2a78d6;
+    --chip: #f0efec;
+    --chip-on: #e2edfb;
+    --shadow: 0 1px 2px rgba(11,11,11,0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface-0: #0d0d0d;
+      --surface-1: #1a1a19;
+      --surface-2: #242422;
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted: #898781;
+      --grid: #2c2c2a;
+      --axis: #383835;
+      --border: rgba(255,255,255,0.10);
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --series-3: #199e70;
+      --ord-1: #184f95;
+      --ord-2: #256abf;
+      --ord-3: #3987e5;
+      --ord-4: #86b6ef;
+      --accent: #3987e5;
+      --chip: #242422;
+      --chip-on: #16324f;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-0: #0d0d0d;
+    --surface-1: #1a1a19;
+    --surface-2: #242422;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --ord-1: #184f95;
+    --ord-2: #256abf;
+    --ord-3: #3987e5;
+    --ord-4: #86b6ef;
+    --accent: #3987e5;
+    --chip: #242422;
+    --chip-on: #16324f;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4);
+  }
+
+  html { background: var(--surface-0); }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--text-primary);
+    background: var(--surface-0);
+  }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 30;
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 24px;
+    background: color-mix(in srgb, var(--surface-0) 92%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; flex-direction: column; gap: 1px; }
+  .brand-title { font-size: 15px; font-weight: 650; letter-spacing: 0.01em; }
+  .brand-sub { font-size: 11.5px; color: var(--text-muted); }
+  .topbar-spacer { flex: 1; }
+  .btn {
+    appearance: none; border: 1px solid var(--border); background: var(--surface-1);
+    color: var(--text-primary); border-radius: 7px; height: 30px; padding: 0 11px;
+    font: inherit; font-size: 12.5px; cursor: pointer;
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn:disabled { opacity: 0.45; cursor: default; }
+  .load-status {
+    font-size: 11.5px; color: var(--text-muted);
+    max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  @media (max-width: 900px) { .load-status { display: none; } }
+
+  main { max-width: 1440px; margin: 0 auto; padding: 20px 24px 48px; }
+
+  .hero-band {
+    display: grid; grid-template-columns: minmax(300px, 1.15fr) 2fr;
+    gap: 16px; align-items: stretch; margin-bottom: 16px;
+  }
+  .hero-card {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px;
+    padding: 22px 24px; box-shadow: var(--shadow); display: flex; flex-direction: column; justify-content: center;
+  }
+  .hero-label { font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em; }
+  .hero-value { font-size: 58px; font-weight: 650; line-height: 1.04; letter-spacing: -0.025em; margin: 4px 0 6px; }
+  .hero-sub { font-size: 12px; color: var(--text-secondary); }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px;
+    padding: 16px 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; justify-content: center; gap: 2px;
+  }
+  .stat-label { font-size: 12px; color: var(--text-muted); }
+  .stat-value { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; }
+  .stat-sub { font-size: 11px; color: var(--text-muted); }
+
+  .filters {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px 16px; box-shadow: var(--shadow); margin-bottom: 16px;
+    display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .filter-group > label, .filter-label { font-size: 10.5px; color: var(--text-muted); letter-spacing: 0.06em; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 27px; padding: 0 9px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--chip); color: var(--text-secondary);
+    font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap;
+  }
+  .chip:hover { color: var(--text-primary); }
+  .chip[aria-pressed="true"] { background: var(--chip-on); border-color: var(--accent); color: var(--text-primary); }
+  .chip-count { font-size: 10.5px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .dot { display: inline-block; vertical-align: middle; width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+  .swatch { display: inline-block; vertical-align: middle; width: 10px; height: 10px; border-radius: 2px; flex: 0 0 auto; }
+  .axis-text { fill: var(--text-muted); font-size: 11px; }
+  .value-text { fill: var(--text-secondary); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .dot.kind-planet { background: var(--series-1); }
+  .dot.kind-star { background: var(--series-2); }
+  .dot.kind-system { background: var(--series-3); }
+  .swatch.rar-common { background: var(--ord-1); }
+  .swatch.rar-uncommon { background: var(--ord-2); }
+  .swatch.rar-rare { background: var(--ord-3); }
+  .swatch.rar-wonder { background: var(--ord-4); }
+
+  input[type="search"], input[type="number"], select {
+    height: 30px; border: 1px solid var(--border); border-radius: 7px;
+    background: var(--surface-1); color: var(--text-primary);
+    font: inherit; font-size: 12.5px; padding: 0 9px;
+  }
+  input[type="search"] { width: 190px; }
+  input[type="number"] { width: 92px; }
+  input[type="number"]:disabled { opacity: 0.4; }
+  input::placeholder { color: var(--text-muted); }
+  .range-row { display: flex; align-items: center; gap: 5px; }
+  .range-row span { color: var(--text-muted); font-size: 12px; }
+  .filter-note { margin-left: auto; font-size: 12px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+
+  .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+  .span-4 { grid-column: span 4; }
+  .span-6 { grid-column: span 6; }
+  .span-12 { grid-column: span 12; }
+  .card {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px;
+    padding: 16px 18px 18px; box-shadow: var(--shadow); min-width: 0;
+  }
+  .card-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+  .card-head > div:first-child { min-width: 0; }
+  .card-title { font-size: 14px; font-weight: 600; }
+  .card-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-left: auto; font-size: 12px; color: var(--text-secondary); }
+  .legend-item { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .legend .dot { width: 9px; height: 9px; }
+
+  .canvas-wrap { position: relative; width: 100%; }
+  .canvas-wrap canvas { display: block; }
+  .canvas-wrap .scatter-base { width: 100%; }
+  .canvas-wrap .scatter-overlay { position: absolute; left: 0; top: 0; width: 100%; pointer-events: none; }
+  .chart-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 12.5px; pointer-events: none; }
+
+  .table-card { margin-top: 16px; padding: 18px; }
+  .table-head-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .table-head-row .card-title { margin-right: 2px; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  thead th {
+    position: sticky; top: 0; z-index: 2; background: var(--surface-1);
+    text-align: left; font-weight: 500; color: var(--text-secondary);
+    border-bottom: 1px solid var(--axis); padding: 0; white-space: nowrap;
+  }
+  thead th button {
+    appearance: none; border: 0; background: transparent; color: inherit; font: inherit;
+    padding: 9px 10px; cursor: pointer; width: 100%; text-align: inherit; white-space: nowrap;
+  }
+  thead th button:hover { color: var(--text-primary); }
+  thead th[data-sort] button::after { content: " ▲"; font-size: 9px; color: var(--accent); }
+  thead th[data-sort="desc"] button::after { content: " ▼"; }
+  tbody td { padding: 7px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; color: var(--text-secondary); }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover td { background: var(--surface-2); color: var(--text-primary); }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.id { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--text-muted); }
+  .pager { display: flex; align-items: center; gap: 10px; justify-content: flex-end; margin-top: 12px; font-size: 12.5px; color: var(--text-secondary); }
+
+  .res-toggle {
+    appearance: none; border: 1px solid var(--border); background: var(--chip);
+    color: var(--text-secondary); border-radius: 6px; padding: 2px 8px;
+    font: inherit; font-size: 11.5px; line-height: 1.5; cursor: pointer; white-space: nowrap;
+  }
+  .res-toggle:hover { color: var(--text-primary); border-color: var(--axis); }
+  .res-toggle[aria-expanded="true"] { color: var(--text-primary); border-color: var(--accent); }
+  tr.res-row td { background: var(--surface-0); padding: 12px 14px 14px; cursor: default; }
+  tr.res-row:hover td { background: var(--surface-0); color: var(--text-secondary); }
+  .res-panel { display: flex; flex-direction: column; gap: 8px; cursor: default; }
+  .res-head { font-size: 11.5px; color: var(--text-muted); }
+  .res-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px 20px; }
+  .res-item { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; font-size: 12px; }
+  .res-name { color: var(--text-secondary); }
+  .res-val { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  .res-track { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: var(--grid); overflow: hidden; }
+  .res-fill { height: 100%; border-radius: 2px; background: var(--series-1); }
+  .res-empty { font-size: 12px; color: var(--text-muted); }
+
+  .empty-row td { text-align: center; color: var(--text-muted); padding: 26px 10px; }
+
+  .backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+    opacity: 0; pointer-events: none; transition: opacity 0.18s ease; z-index: 40;
+  }
+  .backdrop.open { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: fixed; top: 0; right: 0; height: 100%; width: min(480px, 94vw);
+    background: var(--surface-1); border-left: 1px solid var(--border);
+    box-shadow: -8px 0 32px rgba(0,0,0,0.16); z-index: 50;
+    transform: translateX(102%); transition: transform 0.2s ease;
+    overflow-y: auto; padding: 20px 22px 40px;
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+  .drawer-title { font-size: 14px; font-weight: 600; word-break: break-all; min-width: 0; flex: 1 1 auto; }
+  .drawer-close { margin-left: 8px; flex: 0 0 auto; white-space: nowrap; }
+  .chip-static { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; font-size: 11.5px; color: var(--text-secondary); }
+  .section-title { font-size: 11px; letter-spacing: 0.08em; color: var(--text-muted); margin: 18px 0 8px; }
+  .kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
+  .kv { display: flex; flex-direction: column; gap: 1px; }
+  .kv-label { font-size: 11px; color: var(--text-muted); }
+  .kv-value { font-size: 13px; color: var(--text-primary); font-variant-numeric: tabular-nums; word-break: break-all; }
+  .seed { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11px; color: var(--text-secondary); word-break: break-all; }
+  .world-card { border: 1px solid var(--border); border-radius: 10px; padding: 12px 13px; margin-bottom: 10px; background: var(--surface-0); }
+  .world-title { font-size: 13px; font-weight: 600; }
+  .world-sub { font-size: 11.5px; color: var(--text-muted); margin-bottom: 6px; }
+  .res-details { margin-top: 6px; }
+  .res-details > summary {
+    list-style: none; cursor: pointer; font-size: 12px; color: var(--text-secondary);
+    display: inline-flex; align-items: center; gap: 5px; padding: 2px 0;
+  }
+  .res-details > summary::-webkit-details-marker { display: none; }
+  .res-details > summary::before { content: "▸"; font-size: 9px; color: var(--text-muted); }
+  .res-details[open] > summary::before { content: "▾"; }
+  .res-details > summary:hover { color: var(--text-primary); }
+  .res-details > summary .sum-count { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .mat-row { display: grid; grid-template-columns: 128px 1fr 72px; align-items: center; gap: 8px; margin: 4px 0; }
+  .mat-name { font-size: 11.5px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mat-track { height: 7px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+  .mat-fill { height: 100%; background: var(--series-1); border-radius: 999px; }
+  .mat-val { font-size: 11px; color: var(--text-muted); text-align: right; font-variant-numeric: tabular-nums; }
+
+  .tooltip {
+    position: fixed; display: none; z-index: 60; pointer-events: none;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.16); padding: 7px 10px; max-width: 280px;
+    font-size: 12px; color: var(--text-secondary);
+  }
+  .tip-strong { font-size: 13px; font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  .tip-line { margin-top: 1px; }
+  .tip-key { display: inline-block; width: 12px; height: 2px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
+
+  footer { max-width: 1440px; margin: 0 auto; padding: 0 24px 32px; color: var(--text-muted); font-size: 11.5px; }
+
+  @media (max-width: 1100px) {
+    .hero-band { grid-template-columns: 1fr; }
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .span-4, .span-6 { grid-column: span 12; }
+  }
+  @media (max-width: 640px) {
+    main { padding: 14px 12px 40px; }
+    .topbar { padding: 12px 12px; }
+    .hero-value { font-size: 44px; }
+    .kpis { grid-template-columns: 1fr 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body data-palette="#2a78d6,#eb6834,#1baf7a">
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-title">星海档案 · 宇宙星海</div>
+    <div class="brand-sub" id="brandSub">—</div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <span class="load-status" id="loadStatus"></span>
+  <button class="btn" id="loadBtn" type="button" title="选择或拖入 JSON；新版压缩存档请先用 starsea_parser.py export 导出">载入 JSON</button>
+  <input type="file" id="fileInput" accept=".json,application/json" hidden>
+  <button class="btn" id="themeBtn" type="button">深色</button>
+</header>
+
+<main>
+  <section class="hero-band">
+    <div class="hero-card">
+      <div class="hero-label">匹配档案</div>
+      <div class="hero-value" id="heroValue">—</div>
+      <div class="hero-sub" id="heroSub">—</div>
+    </div>
+    <div class="kpis">
+      <div class="stat"><div class="stat-label">奇迹档案</div><div class="stat-value" id="kpiWonder">—</div><div class="stat-sub">最高稀有度</div></div>
+      <div class="stat"><div class="stat-label">稀有及以上</div><div class="stat-value" id="kpiRare">—</div><div class="stat-sub">稀有 / 奇迹</div></div>
+      <div class="stat"><div class="stat-label">平均强度</div><div class="stat-value" id="kpiStrength">—</div><div class="stat-sub">每档案平均</div></div>
+      <div class="stat"><div class="stat-label">资源种类</div><div class="stat-value" id="kpiMats">—</div><div class="stat-sub">不同材料数</div></div>
+    </div>
+  </section>
+
+  <section class="filters" aria-label="筛选与排序条件">
+    <div class="filter-group">
+      <label for="searchField">搜索范围</label>
+      <div class="range-row">
+        <select id="searchField">
+          <option value="">全部字段</option>
+          <option value="id">档案编号</option>
+          <option value="seq">创建序列</option>
+          <option value="seed">种子</option>
+          <option value="system">星系名称</option>
+          <option value="world">天体编号</option>
+          <option value="resource">资源</option>
+        </select>
+        <input type="search" id="searchInput" placeholder="关键词">
+      </div>
+    </div>
+    <div class="filter-group">
+      <label for="kindSelect">档案类型</label>
+      <select id="kindSelect"></select>
+    </div>
+    <div class="filter-group">
+      <label for="raritySelect">稀有度</label>
+      <select id="raritySelect"></select>
+    </div>
+    <div class="filter-group">
+      <label for="wtypeSelect">天体类型</label>
+      <select id="wtypeSelect"></select>
+    </div>
+    <div class="filter-group">
+      <label for="resourceSelect">资源</label>
+      <select id="resourceSelect"></select>
+    </div>
+    <div class="filter-group">
+      <label for="systemSelect">星系类型</label>
+      <select id="systemSelect"></select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">强度</span>
+      <div class="range-row">
+        <select id="strengthMin" aria-label="最小强度"></select>
+        <span>–</span>
+        <select id="strengthMax" aria-label="最大强度"></select>
+      </div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">档案天体数</span>
+      <div class="range-row">
+        <select id="bodyMin" aria-label="最少天体数"></select>
+        <span>–</span>
+        <select id="bodyMax" aria-label="最多天体数"></select>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label for="metricSelect">指标范围</label>
+      <div class="range-row">
+        <select id="metricSelect"></select>
+        <input type="number" id="metricMin" placeholder="最小" step="any" disabled>
+        <span>–</span>
+        <input type="number" id="metricMax" placeholder="最大" step="any" disabled>
+      </div>
+    </div>
+    <button class="btn" id="resetBtn" type="button">重置</button>
+    <div class="filter-note" id="matchInfo">—</div>
+  </section>
+
+  <section class="grid">
+    <div class="card span-4">
+      <div class="card-head">
+        <div><div class="card-title">类型构成</div><div class="card-sub">档案数量</div></div>
+      </div>
+      <div id="kindChart"></div>
+    </div>
+    <div class="card span-4">
+      <div class="card-head">
+        <div><div class="card-title">稀有度构成</div><div class="card-sub">有序色阶：普通 → 奇迹</div></div>
+      </div>
+      <div id="rarityChart"></div>
+    </div>
+    <div class="card span-4">
+      <div class="card-head">
+        <div><div class="card-title">天体数分布</div><div class="card-sub">每个档案包含的天体数量</div></div>
+      </div>
+      <div id="bodyChart"></div>
+    </div>
+
+    <div class="card span-12">
+      <div class="card-head">
+        <div><div class="card-title">规模（×10000） × 资源总量</div><div class="card-sub">点色 = 类型，点大小随天体数；悬停查看数值，点击打开详情</div></div>
+        <div class="legend">
+          <span class="legend-item"><i class="dot kind-planet"></i>行星</span>
+          <span class="legend-item"><i class="dot kind-star"></i>恒星</span>
+          <span class="legend-item"><i class="dot kind-system"></i>星系</span>
+        </div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="scatterMiningBase" class="scatter-base" role="img" aria-label="规模与采矿速率散点图"></canvas>
+        <canvas id="scatterMiningOverlay" class="scatter-overlay"></canvas>
+      </div>
+    </div>
+
+    <div class="card span-12">
+      <div class="card-head">
+        <div><div class="card-title">恒星能量 × 距离</div><div class="card-sub">纵轴为对数刻度；点色 = 类型</div></div>
+        <div class="legend">
+          <span class="legend-item"><i class="dot kind-planet"></i>行星</span>
+          <span class="legend-item"><i class="dot kind-star"></i>恒星</span>
+          <span class="legend-item"><i class="dot kind-system"></i>星系</span>
+        </div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="scatterCapacityBase" class="scatter-base" role="img" aria-label="距离与恒星能量散点图"></canvas>
+        <canvas id="scatterCapacityOverlay" class="scatter-overlay"></canvas>
+      </div>
+    </div>
+
+    <div class="card span-12">
+      <div class="card-head">
+        <div><div class="card-title">资源出现频次</div><div class="card-sub">当前筛选下，包含该资源的档案数量</div></div>
+      </div>
+      <div id="resourceChart"></div>
+    </div>
+  </section>
+
+  <section class="card table-card">
+    <div class="table-head-row">
+      <div class="card-title">档案表</div>
+      <div class="card-sub">每个档案一行 · 星系档案显示内含天体聚合值 · 点击表头排序 · 点击资源展开明细 · 点击行查看档案详情</div>
+      <div class="topbar-spacer"></div>
+      <label class="filter-label" for="pageSize" style="display:flex;align-items:center;gap:6px">每页
+        <select id="pageSize">
+          <option value="25">25</option>
+          <option value="50" selected>50</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+        </select>
+      </label>
+      <button class="btn" id="csvBtn" type="button">导出表格（CSV）</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="pager">
+      <span id="pageInfo">—</span>
+      <button class="btn" id="prevPage" type="button">上一页</button>
+      <button class="btn" id="nextPage" type="button">下一页</button>
+    </div>
+  </section>
+</main>
+
+<footer id="footer">—</footer>
+
+<div class="backdrop" id="backdrop"></div>
+<aside class="drawer" id="drawer" aria-label="档案详情" aria-hidden="true">
+  <div class="drawer-top">
+    <div class="drawer-title" id="drawerTitle">—</div>
+    <button class="btn drawer-close" id="drawerClose" type="button">关闭</button>
+  </div>
+  <div id="drawerBody"></div>
+</aside>
+
+<div class="tooltip" id="tooltip" role="status"></div>
+
+<script>/*__STARSEA_DATA__*/</script>
+<script>
+(function () {
+  "use strict";
+
+  const D = window.STARSEA;
+  let rows = D.rows;
+  let META = D.meta;
+  let MATERIALS = D.materials;
+  let SYSTEMS = D.systems;
+
+  const KIND_ORDER = ["planet", "star", "system"];
+  const RARITY_ORDER = ["common", "uncommon", "rare", "wonder"];
+  const KIND_LABEL = { planet: "行星", star: "恒星", system: "星系" };
+  const RARITY_LABEL = { common: "普通", uncommon: "罕见", rare: "稀有", wonder: "奇迹" };
+  const KIND_VAR = { planet: "--series-1", star: "--series-2", system: "--series-3" };
+  const RARITY_VAR = { common: "--ord-1", uncommon: "--ord-2", rare: "--ord-3", wonder: "--ord-4" };
+
+  const SYS_ZH = {
+    habitable_belt: "宜居带", hot_bright: "炽亮恒星", hot_star_gas: "热星气态带",
+    subgiant_lava: "次巨星熔岩带", red_dwarf_ice: "红矮星冰带", nebula: "星云",
+    remnant: "恒星遗迹", moon_cluster: "卫星群", binary_tidal: "双星潮汐",
+    ring_civilization: "环状文明"
+  };
+  const PLANET_ZH = {
+    gas_platform: "气态平台", temperate_rocky: "温带岩质", frozen_rocky: "冰冻岩质",
+    lava_rocky: "熔岩岩质", arid_rocky: "干旱岩质", metallic_rocky: "金属岩质",
+    airless_minor: "无气小天体", ocean_world: "海洋世界", ecology_basin: "生态盆地",
+    nebula_platform: "星云平台", remnant_orbit: "遗迹轨道", habitable_ring: "宜居环带"
+  };
+  const STELLAR_ZH = {
+    "F-class": "F 型星", "G-class": "G 型星", "K-class": "K 型星", "A-class": "A 型星",
+    "M-class": "M 型星", "G-subgiant": "G 型次巨星", "red-giant": "红巨星",
+    neutron: "中子星", "K-binary": "K 型双星", "black-hole": "黑洞", "white-dwarf": "白矮星"
+  };
+  const BODY_ZH = {
+    planet: "行星", minor_body: "小天体", gas_giant: "气态巨行星", nebula: "星云",
+    neutron_star: "中子星", black_hole: "黑洞", artificial_structure: "人工结构"
+  };
+  const SITE_ZH = {
+    surface: "地表", ocean_platform: "海洋平台", atmosphere: "大气层",
+    orbital_platform: "轨道平台", artificial_habitat: "人工居住区"
+  };
+  const CANVAS_ZH = { surface: "地表", platform: "平台", orbital_belt: "轨道带" };
+  const ENV_ZH = {
+    airless_surface: "无气表面", temperate_surface: "温带表面", metallic_surface: "金属表面",
+    ocean_surface: "海洋表面", gas_atmosphere: "气体大气", frozen_surface: "冰冻表面",
+    lava_surface: "熔岩表面", desert_surface: "荒漠表面", nebula_atmosphere: "星云大气",
+    neutron_orbit: "中子星轨道", black_hole_orbit: "黑洞轨道", ring_habitat: "环形居住带"
+  };
+  const WORLD_ZH = {
+    airless_body: "无气天体", metallic_world: "金属世界", natural_habitat: "自然宜居世界",
+    ocean_world: "海洋世界", gas_giant: "气态巨行星", ice_world: "冰冻世界",
+    lava_world: "熔岩世界", desert_world: "荒漠世界", ecology_basin: "生态盆地",
+    nebula_platform: "星云平台", neutron_star: "中子星", black_hole: "黑洞"
+  };
+  const MATERIAL_ZH = {
+    carbon: "碳", copper_ore: "铜矿", metal: "金属", silica_ore: "硅矿", titanium_ore: "钛矿",
+    ice: "冰", geothermal_fluid: "地热流体", volatile_regolith: "挥发性风化层",
+    atmospheric_catalyst: "大气催化剂", temperate_biomass: "温带生物质",
+    magnetic_flux_ore: "磁通矿", pelagic_mineral_slurry: "远洋矿物浆",
+    helium3_isotope: "氦-3 同位素", cryogenic_brine: "低温卤水", mantle_crystal: "地幔晶体",
+    solar_salt: "太阳盐", ionized_nebula_dust: "电离星云尘埃",
+    pulsar_isotope: "脉冲星同位素", exotic_matter_trace: "奇异物质痕迹",
+    habitat_reclaimate: "居住区再生材料"
+  };
+  function zh(dict, v) {
+    if (v == null || v === "") return "—";
+    return dict[v] || v;
+  }
+  function shortLabel(s) {
+    if (!s) return "—";
+    const i = s.indexOf(" / ");
+    return i > 0 ? s.slice(0, i) : s;
+  }
+
+  const METRICS = {
+    size: { label: "规模（x）", value: r => r.size / 1e4, fmt: v => shortNum(v) + "x" },
+    mine: { label: "采矿速率", value: r => r.mine, fmt: fmt },
+    cap: { label: "恒星能量（千瓦）", value: r => r.cap, fmt: compact },
+    dist: { label: "距离（毫光年）", value: r => r.dist, fmt: fmt },
+    pops: { label: "人口上限", value: r => r.pops, fmt: fmt },
+    matCount: { label: "资源种类", value: r => r.matCount, fmt: fmt },
+    body: { label: "天体数", value: r => r.body, fmt: fmt },
+    strength: { label: "强度", value: r => r.strength, fmt: fmt }
+  };
+
+  const state = {
+    q: "",
+    searchField: "",
+    kind: "",
+    rarity: "",
+    wtype: "",
+    resource: "",
+    system: "",
+    strengthMin: "",
+    strengthMax: "",
+    bodyMin: "",
+    bodyMax: "",
+    metric: "",
+    metricMin: "",
+    metricMax: "",
+    openRes: new Set(),
+    sortKey: "seq",
+    sortDir: "asc",
+    page: 0,
+    pageSize: 50
+  };
+  let filtered = rows.slice();
+  let tableBodies = [];
+
+  // ---------- helpers ----------
+  const $ = sel => document.querySelector(sel);
+  const NS = "http://www.w3.org/2000/svg";
+  function svgEl(tag, attrs) {
+    const e = document.createElementNS(NS, tag);
+    if (attrs) for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function elem(tag, attrs, text) {
+    const e = document.createElement(tag);
+    if (attrs) for (const k in attrs) {
+      if (k === "class") e.className = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    }
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+  const nf = new Intl.NumberFormat("zh-CN");
+  function fmt(n) {
+    return n == null || Number.isNaN(n) ? "—" : nf.format(Math.round(n));
+  }
+  function shortNum(v) {
+    const a = Math.abs(v);
+    if (a >= 100) return v.toFixed(0);
+    if (a >= 10) return v.toFixed(1).replace(/\.0$/, "");
+    return v.toFixed(2).replace(/\.?0+$/, "");
+  }
+  // 规模以 10000 为一个 x 显示：10000 → 1x，20000 → 2x
+  function sizeX(v) {
+    return shortNum(v / 1e4) + "x";
+  }
+  function compact(n) {
+    if (n == null || Number.isNaN(n)) return "—";
+    const a = Math.abs(n);
+    if (a >= 1e15) return shortNum(n / 1e15) + "P";
+    if (a >= 1e12) return shortNum(n / 1e12) + "T";
+    if (a >= 1e9) return shortNum(n / 1e9) + "G";
+    if (a >= 1e6) return shortNum(n / 1e6) + "M";
+    if (a >= 1e3) return shortNum(n / 1e3) + "k";
+    return nf.format(Math.round(n));
+  }
+  function debounce(fn, ms) {
+    let t;
+    return function () {
+      const args = arguments;
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(null, args), ms);
+    };
+  }
+
+  // ---------- tooltip ----------
+  const tipEl = $("#tooltip");
+  function showTipAt(clientX, clientY, lines) {
+    tipEl.textContent = "";
+    lines.forEach(line => {
+      const d = elem("div", { class: line.strong ? "tip-strong" : "tip-line" });
+      if (line.color) {
+        const key = elem("span", { class: "tip-key" });
+        key.style.background = line.color;
+        d.appendChild(key);
+      }
+      d.appendChild(document.createTextNode(line.text));
+      tipEl.appendChild(d);
+    });
+    tipEl.style.display = "block";
+    const r = tipEl.getBoundingClientRect();
+    let x = clientX + 14;
+    let y = clientY + 14;
+    if (x + r.width > window.innerWidth - 8) x = clientX - r.width - 14;
+    if (y + r.height > window.innerHeight - 8) y = clientY - r.height - 14;
+    tipEl.style.left = Math.max(8, x) + "px";
+    tipEl.style.top = Math.max(8, y) + "px";
+  }
+  function hideTip() { tipEl.style.display = "none"; }
+  function attachTip(target, linesFn) {
+    target.addEventListener("pointermove", e => showTipAt(e.clientX, e.clientY, linesFn()));
+    target.addEventListener("pointerleave", hideTip);
+    target.addEventListener("focus", () => {
+      const r = target.getBoundingClientRect();
+      showTipAt(r.left + r.width / 2, r.top, linesFn());
+    });
+    target.addEventListener("blur", hideTip);
+  }
+
+  // ---------- filtering ----------
+  function metricValue(r) {
+    return state.metric ? METRICS[state.metric].value(r) : 0;
+  }
+  function worldText(worlds) {
+    return worlds.map(w => [
+      w.label || "", w.wtype || "", w.env || "", w.bodyKind || "", w.site || "", w.canvas || "",
+      w.minePrimary ? zh(MATERIAL_ZH, w.minePrimary) : "",
+      zh(WORLD_ZH, w.wtype), zh(ENV_ZH, w.env), zh(BODY_ZH, w.bodyKind)
+    ].join(" ")).join(" ");
+  }
+
+  function searchHaystack(r) {
+    if (state.searchField === "id") return r.id;
+    if (state.searchField === "seq") return String(r.seq == null ? "" : r.seq);
+    if (state.searchField === "seed") return r.seed || "";
+    if (state.searchField === "system") return (r.sysLabel || "") + " " + zh(SYS_ZH, r.syskind);
+    // 恒星档案的 worlds 只是星系预览，不算档案本体，不参与天体搜索
+    if (state.searchField === "world") return r.kind === "star" ? "" : worldText(r.worlds);
+    if (state.searchField === "resource") {
+      return r.mats.join(" ") + " " + r.mats.map(m => zh(MATERIAL_ZH, m)).join(" ");
+    }
+    // 纯数字关键词不匹配 id/seed 哈希子串，避免 “11404” 命中别的档案
+    const numeric = /^\d+$/.test(state.q || "");
+    return [
+      numeric ? "" : r.id,
+      String(r.seq == null ? "" : r.seq), String(r.step == null ? "" : r.step),
+      numeric ? "" : (r.seed || ""), r.sysLabel || "",
+      r.mats.join(" "), r.mats.map(m => zh(MATERIAL_ZH, m)).join(" "),
+      zh(SYS_ZH, r.syskind), zh(PLANET_ZH, r.pkind), zh(STELLAR_ZH, r.sclass),
+      r.kind === "star" ? "" : worldText(r.worlds)
+    ].join(" ");
+  }
+
+  function matches(r) {
+    if (state.q) {
+      const q = state.q.toLowerCase();
+      if (!searchHaystack(r).toLowerCase().includes(q)) return false;
+    }
+    if (state.kind && r.kind !== state.kind) return false;
+    if (state.rarity && r.rarity !== state.rarity) return false;
+    // 恒星档案的 worlds 只是星系预览，不是档案本体，不参与天体类型筛选
+    if (state.wtype && (r.kind === "star" || !r.worlds.some(w => w.wtype === state.wtype))) return false;
+    if (state.resource && !r.mats.includes(state.resource)) return false;
+    if (state.system && r.syskind !== state.system) return false;
+    if (state.strengthMin !== "" && r.strength < +state.strengthMin) return false;
+    if (state.strengthMax !== "" && r.strength > +state.strengthMax) return false;
+    if (state.bodyMin !== "" && r.body < +state.bodyMin) return false;
+    if (state.bodyMax !== "" && r.body > +state.bodyMax) return false;
+    if (state.metric) {
+      const v = metricValue(r);
+      if (state.metricMin !== "" && v < +state.metricMin) return false;
+      if (state.metricMax !== "" && v > +state.metricMax) return false;
+    }
+    return true;
+  }
+
+  // ---------- controls ----------
+  function fillSelect(sel, placeholder, entries, current) {
+    sel.textContent = "";
+    sel.appendChild(elem("option", { value: "" }, placeholder));
+    entries.forEach(([value, label]) => {
+      sel.appendChild(elem("option", { value: value }, label));
+    });
+    sel.value = current || "";
+  }
+
+  function worldTypeCounts() {
+    const counts = {};
+    rows.forEach(r => {
+      if (r.kind === "star") return;
+      r.worlds.forEach(w => {
+        const k = w.wtype || "—";
+        counts[k] = (counts[k] || 0) + 1;
+      });
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  }
+
+  function refreshOptions() {
+    fillSelect($("#kindSelect"), "全部档案类型",
+      KIND_ORDER.map(k => [k, KIND_LABEL[k] + "（" + fmt(META.kinds[k] || 0) + "）"]), state.kind);
+    fillSelect($("#raritySelect"), "全部稀有度",
+      RARITY_ORDER.map(k => [k, RARITY_LABEL[k] + "（" + fmt(META.rarities[k] || 0) + "）"]), state.rarity);
+    fillSelect($("#wtypeSelect"), "全部天体类型",
+      worldTypeCounts().map(([w, c]) => [w, zh(WORLD_ZH, w) + "（" + fmt(c) + "）"]), state.wtype);
+
+    const mats = Object.entries(MATERIALS);
+    fillSelect($("#resourceSelect"), "全部资源",
+      mats.map(([m, c]) => [m, zh(MATERIAL_ZH, m) + "（" + fmt(c) + "）"]), state.resource);
+    const systems = Object.entries(SYSTEMS);
+    fillSelect($("#systemSelect"), "全部星系类型",
+      systems.map(([s, c]) => [s, zh(SYS_ZH, s) + "（" + fmt(c) + "）"]), state.system);
+
+    const maxStrength = rows.reduce((m, r) => Math.max(m, r.strength || 0), 1);
+    const strengthVals = Array.from({ length: Math.max(1, maxStrength) }, (_, i) => String(i + 1));
+    const maxBody = rows.reduce((m, r) => Math.max(m, r.body || 0), 1);
+    const bodyVals = Array.from({ length: Math.max(1, maxBody) }, (_, i) => String(i + 1));
+    fillSelect($("#strengthMin"), "最小", strengthVals.map(v => [String(v), String(v)]), state.strengthMin);
+    fillSelect($("#strengthMax"), "最大", strengthVals.map(v => [String(v), String(v)]), state.strengthMax);
+    fillSelect($("#bodyMin"), "最小", bodyVals.map(v => [v, v]), state.bodyMin);
+    fillSelect($("#bodyMax"), "最大", bodyVals.map(v => [v, v]), state.bodyMax);
+
+    const metricSel = $("#metricSelect");
+    metricSel.textContent = "";
+    metricSel.appendChild(elem("option", { value: "" }, "不按指标筛选"));
+    Object.keys(METRICS).forEach(k => metricSel.appendChild(elem("option", { value: k }, METRICS[k].label)));
+    metricSel.value = state.metric;
+    syncMetricUnit();
+  }
+
+  // 规模指标的输入框使用 x 单位提示（10000 → 1x）
+  function syncMetricUnit() {
+    const isSize = state.metric === "size";
+    $("#metricMin").placeholder = isSize ? "最小 x" : "最小";
+    $("#metricMax").placeholder = isSize ? "最大 x" : "最大";
+  }
+
+  function bindControls() {
+    $("#searchField").addEventListener("change", e => {
+      state.searchField = e.target.value;
+      state.page = 0;
+      renderAll();
+    });
+    $("#searchInput").addEventListener("input", debounce(e => {
+      state.q = e.target.value.trim();
+      state.page = 0;
+      renderAll();
+    }, 120));
+    $("#kindSelect").addEventListener("change", e => { state.kind = e.target.value; state.page = 0; renderAll(); });
+    $("#raritySelect").addEventListener("change", e => { state.rarity = e.target.value; state.page = 0; renderAll(); });
+    $("#wtypeSelect").addEventListener("change", e => { state.wtype = e.target.value; state.page = 0; renderAll(); });
+    $("#resourceSelect").addEventListener("change", e => { state.resource = e.target.value; state.page = 0; renderAll(); });
+    $("#systemSelect").addEventListener("change", e => { state.system = e.target.value; state.page = 0; renderAll(); });
+    $("#strengthMin").addEventListener("change", e => { state.strengthMin = e.target.value; state.page = 0; renderAll(); });
+    $("#strengthMax").addEventListener("change", e => { state.strengthMax = e.target.value; state.page = 0; renderAll(); });
+    $("#bodyMin").addEventListener("change", e => { state.bodyMin = e.target.value; state.page = 0; renderAll(); });
+    $("#bodyMax").addEventListener("change", e => { state.bodyMax = e.target.value; state.page = 0; renderAll(); });
+    $("#metricSelect").addEventListener("change", e => {
+      state.metric = e.target.value;
+      const on = !!state.metric;
+      $("#metricMin").disabled = !on;
+      $("#metricMax").disabled = !on;
+      syncMetricUnit();
+      state.page = 0;
+      renderAll();
+    });
+    const metricInput = debounce(() => {
+      state.metricMin = $("#metricMin").value;
+      state.metricMax = $("#metricMax").value;
+      state.page = 0;
+      renderAll();
+    }, 200);
+    $("#metricMin").addEventListener("input", metricInput);
+    $("#metricMax").addEventListener("input", metricInput);
+    $("#resetBtn").addEventListener("click", resetFilters);
+    $("#pageSize").addEventListener("change", e => {
+      state.pageSize = +e.target.value;
+      state.page = 0;
+      renderTable();
+    });
+    $("#prevPage").addEventListener("click", () => { if (state.page > 0) { state.page--; renderTable(); } });
+    $("#nextPage").addEventListener("click", () => { if (state.page + 1 < maxPage()) { state.page++; renderTable(); } });
+    $("#csvBtn").addEventListener("click", exportCSV);
+    $("#drawerClose").addEventListener("click", closeDrawer);
+    $("#backdrop").addEventListener("click", closeDrawer);
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
+  }
+
+  function initControls() {
+    refreshOptions();
+    bindControls();
+  }
+
+  function resetState() {
+    state.q = "";
+    state.searchField = "";
+    state.kind = "";
+    state.rarity = "";
+    state.wtype = "";
+    state.resource = "";
+    state.system = "";
+    state.strengthMin = state.strengthMax = "";
+    state.bodyMin = state.bodyMax = "";
+    state.metric = state.metricMin = state.metricMax = "";
+    state.openRes.clear();
+    state.page = 0;
+  }
+
+  function resetFilters() {
+    resetState();
+    $("#searchField").value = "";
+    $("#searchInput").value = "";
+    $("#metricMin").value = "";
+    $("#metricMax").value = "";
+    $("#metricMin").disabled = true;
+    $("#metricMax").disabled = true;
+    refreshOptions();
+    renderAll();
+  }
+
+  // ---------- KPI ----------
+  function updateKpis() {
+    const n = filtered.length;
+    $("#heroValue").textContent = fmt(n);
+    $("#heroSub").textContent = "版本 " + META.revision + " · " + META.source;
+    $("#matchInfo").textContent = "匹配 " + fmt(n) + " / " + fmt(rows.length) + " 条";
+    $("#kpiWonder").textContent = fmt(filtered.filter(r => r.rarity === "wonder").length);
+    $("#kpiRare").textContent = fmt(filtered.filter(r => r.rarity === "rare" || r.rarity === "wonder").length);
+    const avg = n ? filtered.reduce((s, r) => s + (r.strength || 0), 0) / n : 0;
+    $("#kpiStrength").textContent = avg.toFixed(2);
+    const mats = new Set();
+    filtered.forEach(r => r.mats.forEach(m => mats.add(m)));
+    $("#kpiMats").textContent = fmt(mats.size);
+  }
+
+  // ---------- SVG bar charts ----------
+  function barH(container, items, opts) {
+    container.textContent = "";
+    opts = opts || {};
+    const rowH = opts.rowH || 26;
+    const labelW = opts.labelW || 84;
+    const valueW = opts.valueW || 58;
+    const w = Math.max(container.clientWidth || 260, 240);
+    const h = items.length * rowH + 10;
+    const plotW = Math.max(20, w - labelW - valueW);
+    const max = Math.max.apply(null, items.map(d => d.value).concat([1]));
+    const root = svgEl("svg", { width: w, height: h, viewBox: "0 0 " + w + " " + h, role: "img" });
+
+    items.forEach((d, i) => {
+      const y = 5 + i * rowH;
+      const bh = Math.min(18, rowH - 8);
+      const by = y + (rowH - bh) / 2;
+      const bw = Math.max(d.value > 0 ? 2 : 0, plotW * d.value / max);
+      const r = Math.min(4, bw / 2);
+
+      const label = svgEl("text", {
+        x: labelW - 8, y: y + rowH / 2 + 4, "text-anchor": "end", class: "axis-text"
+      });
+      let lab = d.label;
+      const maxChars = opts.maxLabel || 12;
+      if (lab.length > maxChars) lab = lab.slice(0, maxChars - 1) + "…";
+      label.textContent = lab;
+      root.appendChild(label);
+
+      if (bw > 0) {
+        const path = svgEl("path", {
+          d: "M" + labelW + "," + by +
+             " h" + (bw - r) +
+             " a" + r + "," + r + " 0 0 1 " + r + "," + r +
+             " v" + (bh - 2 * r) +
+             " a" + r + "," + r + " 0 0 1 " + (-r) + "," + r +
+             " h" + (-(bw - r)) + " z",
+          fill: d.color || "var(--series-1)",
+          tabindex: "0",
+          role: "img",
+          "aria-label": d.label + ": " + fmt(d.value)
+        });
+        attachTip(path, () => [
+          { text: fmt(d.value), strong: true },
+          { text: d.label + (d.tip ? " · " + d.tip : ""), color: d.color || cssVar("--series-1") }
+        ]);
+        root.appendChild(path);
+      }
+
+      const val = svgEl("text", {
+        x: labelW + bw + 6, y: y + rowH / 2 + 4, class: "value-text"
+      });
+      val.textContent = opts.valueFmt ? opts.valueFmt(d.value) : fmt(d.value);
+      root.appendChild(val);
+    });
+
+    root.appendChild(svgEl("line", {
+      x1: labelW, y1: 3, x2: labelW, y2: h - 3,
+      stroke: "var(--axis)", "stroke-width": 1
+    }));
+    container.appendChild(root);
+  }
+
+  function barV(container, items, opts) {
+    container.textContent = "";
+    opts = opts || {};
+    const w = Math.max(container.clientWidth || 260, 240);
+    const h = opts.height || 190;
+    const pad = { l: 44, r: 12, t: 20, b: 30 };
+    const plotW = Math.max(10, w - pad.l - pad.r);
+    const plotH = h - pad.t - pad.b;
+    const max = Math.max.apply(null, items.map(d => d.value).concat([1]));
+    const band = plotW / items.length;
+    const bw = Math.min(24, band * 0.55);
+    const root = svgEl("svg", { width: w, height: h, viewBox: "0 0 " + w + " " + h, role: "img" });
+
+    const ticks = max <= 4
+      ? Array.from({ length: Math.floor(max) + 1 }, (_, i) => i)
+      : niceTicks(0, max, 4);
+    ticks.forEach(t => {
+      const y = pad.t + plotH - (t / max) * plotH;
+      root.appendChild(svgEl("line", {
+        x1: pad.l, y1: y, x2: w - pad.r, y2: y, stroke: "var(--grid)", "stroke-width": 1
+      }));
+      const tx = svgEl("text", { x: pad.l - 7, y: y + 4, "text-anchor": "end", class: "axis-text" });
+      tx.textContent = fmt(t);
+      root.appendChild(tx);
+    });
+
+    items.forEach((d, i) => {
+      const cx = pad.l + band * i + band / 2;
+      const bh = max > 0 ? (d.value / max) * plotH : 0;
+      const x = cx - bw / 2;
+      const y = pad.t + plotH - bh;
+      const r = Math.min(4, bh / 2, bw / 2);
+      if (bh > 0) {
+        const path = svgEl("path", {
+          d: "M" + x + "," + (pad.t + plotH) +
+             " v" + (-(bh - r)) +
+             " a" + r + "," + r + " 0 0 1 " + r + "," + (-r) +
+             " h" + (bw - 2 * r) +
+             " a" + r + "," + r + " 0 0 1 " + r + "," + r +
+             " v" + (bh - r) + " z",
+          fill: opts.color || "var(--series-1)",
+          tabindex: "0", role: "img",
+          "aria-label": d.label + ": " + fmt(d.value)
+        });
+        attachTip(path, () => [
+          { text: fmt(d.value), strong: true },
+          { text: d.label }
+        ]);
+        root.appendChild(path);
+      }
+      const vt = svgEl("text", { x: cx, y: y - 5, "text-anchor": "middle", class: "value-text" });
+      vt.textContent = fmt(d.value);
+      root.appendChild(vt);
+      const lt = svgEl("text", { x: cx, y: h - 9, "text-anchor": "middle", class: "axis-text" });
+      lt.textContent = d.label;
+      root.appendChild(lt);
+    });
+
+    root.appendChild(svgEl("line", {
+      x1: pad.l, y1: pad.t + plotH + 0.5, x2: w - pad.r, y2: pad.t + plotH + 0.5,
+      stroke: "var(--axis)", "stroke-width": 1
+    }));
+    container.appendChild(root);
+  }
+
+  function niceTicks(min, max, count) {
+    const span = max - min || 1;
+    const raw = span / Math.max(1, count - 1);
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const norm = raw / mag;
+    const mult = norm >= 7.5 ? 10 : norm >= 3.5 ? 5 : norm >= 1.5 ? 2 : 1;
+    const step = mult * mag;
+    const start = Math.ceil(min / step) * step;
+    const out = [];
+    for (let v = start; v <= max + step * 1e-9; v += step) out.push(v);
+    return out.length ? out : [min, max];
+  }
+
+  // ---------- charts ----------
+  function renderKindChart() {
+    const counts = { planet: 0, star: 0, system: 0 };
+    filtered.forEach(r => { counts[r.kind] = (counts[r.kind] || 0) + 1; });
+    const items = KIND_ORDER.map(k => ({
+      label: KIND_LABEL[k], value: counts[k], color: cssVar(KIND_VAR[k])
+    }));
+    barH($("#kindChart"), items, { labelW: 64, valueW: 52, rowH: 34, maxLabel: 8 });
+  }
+
+  function renderRarityChart() {
+    const counts = { common: 0, uncommon: 0, rare: 0, wonder: 0 };
+    filtered.forEach(r => { counts[r.rarity] = (counts[r.rarity] || 0) + 1; });
+    const items = RARITY_ORDER.map(k => ({
+      label: RARITY_LABEL[k], value: counts[k], color: cssVar(RARITY_VAR[k])
+    }));
+    barH($("#rarityChart"), items, { labelW: 64, valueW: 52, rowH: 30, maxLabel: 8 });
+  }
+
+  function renderBodyChart() {
+    const counts = {};
+    for (let i = 1; i <= 7; i++) counts[i] = 0;
+    filtered.forEach(r => { counts[r.body] = (counts[r.body] || 0) + 1; });
+    const items = Object.keys(counts).sort((a, b) => a - b).map(k => ({
+      label: k + " 体", value: counts[k]
+    }));
+    barV($("#bodyChart"), items, { color: cssVar("--series-1"), height: 184 });
+  }
+
+  function renderResourceChart() {
+    const counts = new Map();
+    Object.keys(MATERIALS).forEach(m => counts.set(m, 0));
+    filtered.forEach(r => r.mats.forEach(m => counts.set(m, (counts.get(m) || 0) + 1)));
+    const items = Array.from(counts.entries())
+      .map(([m, c]) => ({ label: zh(MATERIAL_ZH, m), value: c, tip: m, color: cssVar("--series-1") }))
+      .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label));
+    barH($("#resourceChart"), items, { labelW: 158, valueW: 60, rowH: 25, maxLabel: 24 });
+  }
+
+  // ---------- scatter ----------
+  const DOMAINS = {};
+  function domainOf(key) {
+    let mn = Infinity, mx = -Infinity;
+    for (const r of rows) {
+      const v = r[key];
+      if (v == null || !Number.isFinite(v)) continue;
+      if (v < mn) mn = v;
+      if (v > mx) mx = v;
+    }
+    if (!Number.isFinite(mn)) { mn = 0; mx = 1; }
+    return { min: mn, max: mx };
+  }
+  function computeDomains() {
+    ["size", "mine", "cap", "dist"].forEach(k => { DOMAINS[k] = domainOf(k); });
+  }
+  computeDomains();
+
+  function paddedDomain(d, log) {
+    if (log) {
+      const lo = Math.log10(Math.max(d.min, 1));
+      const hi = Math.log10(Math.max(d.max, 1));
+      const pad = (hi - lo) * 0.04 || 0.1;
+      return { min: Math.pow(10, lo - pad), max: Math.pow(10, hi + pad) };
+    }
+    const pad = (d.max - d.min) * 0.04 || 1;
+    let mn = d.min - pad;
+    if (d.min >= 0 && mn < 0) mn = 0;
+    return { min: mn, max: d.max + pad };
+  }
+
+  const SUP_DIGITS = { "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴",
+    "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹" };
+  function powLabel(v) {
+    const e = Math.round(Math.log10(v));
+    return "10" + String(e).split("").map(c => SUP_DIGITS[c] || c).join("");
+  }
+
+  function renderScatter(baseId, overlayId, opts) {
+    const base = document.getElementById(baseId);
+    const overlay = document.getElementById(overlayId);
+    const wrap = base.parentElement;
+    const cssW = Math.max(wrap.clientWidth || 640, 320);
+    const cssH = opts.height || 348;
+    const dpr = window.devicePixelRatio || 1;
+    [base, overlay].forEach(c => {
+      c.width = Math.round(cssW * dpr);
+      c.height = Math.round(cssH * dpr);
+      c.style.width = cssW + "px";
+      c.style.height = cssH + "px";
+    });
+
+    const oldEmpty = wrap.querySelector(".chart-empty");
+    if (oldEmpty) oldEmpty.remove();
+
+    const ctx = base.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssW, cssH);
+
+    const pad = { l: 70, r: 20, t: 16, b: 42 };
+    const plotW = cssW - pad.l - pad.r;
+    const plotH = cssH - pad.t - pad.b;
+    const dx = paddedDomain(DOMAINS[opts.xKey], opts.xLog);
+    const dy = paddedDomain(DOMAINS[opts.yKey], opts.yLog);
+
+    function sx(v) {
+      if (opts.xLog) {
+        const lo = Math.log10(dx.min), hi = Math.log10(dx.max);
+        return pad.l + (Math.log10(Math.max(v, dx.min)) - lo) / (hi - lo) * plotW;
+      }
+      return pad.l + (v - dx.min) / (dx.max - dx.min || 1) * plotW;
+    }
+    function sy(v) {
+      if (opts.yLog) {
+        const lo = Math.log10(dy.min), hi = Math.log10(dy.max);
+        return pad.t + plotH - (Math.log10(Math.max(v, dy.min)) - lo) / (hi - lo) * plotH;
+      }
+      return pad.t + plotH - (v - dy.min) / (dy.max - dy.min || 1) * plotH;
+    }
+    function xTicks() {
+      if (opts.xLog) return logTicks(dx.min, dx.max);
+      return niceTicks(dx.min, dx.max, 6);
+    }
+    function yTicks() {
+      if (opts.yLog) return logTicks(dy.min, dy.max);
+      return niceTicks(dy.min, dy.max, 5);
+    }
+    function logTicks(min, max) {
+      const lo = Math.floor(Math.log10(Math.max(min, 1)));
+      const hi = Math.ceil(Math.log10(Math.max(max, 10)));
+      const step = hi - lo > 6 ? 2 : 1;
+      const out = [];
+      for (let e = lo; e <= hi; e += step) out.push(Math.pow(10, e));
+      return out;
+    }
+
+    const inkMuted = cssVar("--text-muted");
+    const inkSecondary = cssVar("--text-secondary");
+    const inkPrimary = cssVar("--text-primary");
+    const grid = cssVar("--grid");
+    const axis = cssVar("--axis");
+    const surface = cssVar("--surface-1");
+    const font = "11px system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif";
+
+    ctx.font = font;
+    ctx.fillStyle = inkMuted;
+    ctx.lineWidth = 1;
+
+    // y grid + labels
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    const yTickFmt = opts.yTickFmt || opts.yFmt;
+    yTicks().forEach(t => {
+      if (t < dy.min || t > dy.max) return;
+      const y = sy(t);
+      ctx.strokeStyle = grid;
+      ctx.beginPath(); ctx.moveTo(pad.l, y + 0.5); ctx.lineTo(cssW - pad.r, y + 0.5); ctx.stroke();
+      ctx.fillStyle = inkMuted;
+      ctx.fillText(yTickFmt(t), pad.l - 8, y);
+    });
+
+    // x labels
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    xTicks().forEach(t => {
+      if (t < dx.min || t > dx.max) return;
+      const x = sx(t);
+      ctx.fillStyle = inkMuted;
+      ctx.fillText(opts.xFmt(t), x, pad.t + plotH + 8);
+    });
+
+    // baseline
+    ctx.strokeStyle = axis;
+    ctx.beginPath();
+    ctx.moveTo(pad.l, pad.t + plotH + 0.5);
+    ctx.lineTo(cssW - pad.r, pad.t + plotH + 0.5);
+    ctx.stroke();
+
+    // axis titles
+    ctx.fillStyle = inkMuted;
+    ctx.textAlign = "center";
+    ctx.fillText(opts.xLabel, pad.l + plotW / 2, cssH - 14);
+    ctx.textAlign = "left";
+    ctx.fillText(opts.yLabel, pad.l, 12);
+
+    // points
+    const pts = [];
+    filtered.forEach(r => {
+      const x = sx(r[opts.xKey]);
+      const y = sy(r[opts.yKey]);
+      if (x < pad.l || x > cssW - pad.r || y < pad.t || y > pad.t + plotH) return;
+      pts.push({ x, y, r, color: cssVar(KIND_VAR[r.kind]) });
+    });
+
+    pts.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = surface;
+      ctx.stroke();
+    });
+
+    // direct label: extreme point on y
+    let top = null;
+    filtered.forEach(r => {
+      if (!top || (r[opts.yKey] || 0) > (top[opts.yKey] || 0)) top = r;
+    });
+    if (top) {
+      const tx = sx(top[opts.xKey]);
+      const ty = sy(top[opts.yKey]);
+      if (tx >= pad.l && tx <= cssW - pad.r && ty >= pad.t && ty <= pad.t + plotH) {
+        const text = "最高 " + opts.yFmt(top[opts.yKey]);
+        ctx.font = "11px system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif";
+        let lx = tx + 9, ly = ty - 8;
+        const tw = ctx.measureText(text).width;
+        if (lx + tw > cssW - pad.r) lx = tx - tw - 9;
+        if (ly < pad.t + 10) ly = ty + 15;
+        ctx.textAlign = "left";
+        ctx.textBaseline = "alphabetic";
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = surface;
+        ctx.strokeText(text, lx, ly);
+        ctx.fillStyle = inkSecondary;
+        ctx.fillText(text, lx, ly);
+      }
+    }
+
+    // empty state
+    if (!filtered.length) {
+      ctx.fillStyle = inkMuted;
+      ctx.font = "12.5px system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("当前筛选无匹配结果", pad.l + plotW / 2, pad.t + plotH / 2);
+    }
+
+    // hover layer
+    const octx = overlay.getContext("2d");
+    octx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    let best = null;
+    overlay.style.pointerEvents = "none";
+    base.style.cursor = "crosshair";
+
+    function clearOverlay() {
+      octx.clearRect(0, 0, cssW, cssH);
+    }
+    function nearest(mx, my) {
+      let b = null, bd = 24 * 24;
+      for (const p of pts) {
+        const dxp = p.x - mx, dyp = p.y - my;
+        const d = dxp * dxp + dyp * dyp;
+        if (d < bd) { bd = d; b = p; }
+      }
+      return b;
+    }
+    function tipLines(p) {
+      return [
+        { text: opts.yFmt(p.r[opts.yKey]), strong: true },
+        { text: opts.yLabel + " · " + opts.xLabel + ": " + opts.xFmt(p.r[opts.xKey]) },
+        { text: KIND_LABEL[p.r.kind] + " · " + p.r.id.slice(0, 12), color: p.color }
+      ];
+    }
+    base.onpointermove = e => {
+      const rect = base.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const p = nearest(mx, my);
+      clearOverlay();
+      if (p) {
+        best = p;
+        octx.beginPath();
+        octx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+        octx.strokeStyle = surface;
+        octx.lineWidth = 4;
+        octx.stroke();
+        octx.beginPath();
+        octx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+        octx.strokeStyle = inkPrimary;
+        octx.lineWidth = 2;
+        octx.stroke();
+        showTipAt(e.clientX, e.clientY, tipLines(p));
+        base.style.cursor = "pointer";
+      } else {
+        best = null;
+        hideTip();
+        base.style.cursor = "crosshair";
+      }
+    };
+    base.onpointerleave = () => { clearOverlay(); hideTip(); best = null; };
+    base.onclick = e => {
+      const rect = base.getBoundingClientRect();
+      const p = nearest(e.clientX - rect.left, e.clientY - rect.top);
+      if (p) openDetail(p.r);
+    };
+    base._pts = pts;
+  }
+
+  // ---------- table ----------
+  // 表格按档案本体展示：行星档案 1 行、恒星档案 1 行（恒星本体）、
+  // 星系档案 1 行（整个星系，不再拆成内含天体）。
+  function rebuildBodies() {
+    tableBodies = filtered.map(r => {
+      if (r.kind === "system") {
+        const totals = {};
+        r.worlds.forEach(w => {
+          const m = w.mats || {};
+          for (const k in m) totals[k] = (totals[k] || 0) + m[k];
+        });
+        return {
+          r, w: null,
+          key: r.id + "|system",
+          label: r.id.slice(0, 12),
+          isSystem: true,
+          wtype: null,
+          bodyKind: "system",
+          size: r.size, pop: r.pops, hab: r.hab || 0, mine: r.mine,
+          matCount: r.matCount, matTotals: totals
+        };
+      }
+      if (r.kind === "star") {
+        return {
+          r, w: null,
+          key: r.id + "|star",
+          label: r.id.slice(0, 12),
+          isStar: true,
+          wtype: r.sclass,
+          bodyKind: "star",
+          size: null, pop: null, hab: null, mine: null, matCount: null,
+          matTotals: null
+        };
+      }
+      const w = r.worlds[0] || {};
+      const mats = w.mats || {};
+      return {
+        r, w,
+        key: r.id + "|" + (w.label || ""),
+        label: r.id.slice(0, 12),
+        wtype: w.wtype,
+        bodyKind: w.bodyKind,
+        size: w.size || 0,
+        pop: w.pop || 0,
+        hab: w.hab || 0,
+        mine: Object.values(mats).reduce((s, v) => s + v, 0),
+        matCount: Object.keys(mats).length,
+        matTotals: mats
+      };
+    });
+  }
+
+  function bodyTypeLabel(b) {
+    if (b.isSystem) return "星系";
+    if (b.isStar) return zh(STELLAR_ZH, b.wtype);
+    return zh(WORLD_ZH, b.wtype);
+  }
+
+  // 星系行的悬浮提示：列出内含天体类型，但不拆成多行
+  function systemTypeSummary(r) {
+    const counts = {};
+    r.worlds.forEach(w => {
+      const k = zh(WORLD_ZH, w.wtype);
+      counts[k] = (counts[k] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .map(([k, v]) => v > 1 ? k + " ×" + v : k).join("、");
+  }
+
+  const COLS = [
+    { key: "seq", label: "序", num: true, fmt: b => b.r.seq },
+    { key: "label", label: "档案", fmt: b => b.label, title: b => b.r.id },
+    { key: "kind", label: "档案类型", fmt: b => KIND_LABEL[b.r.kind] },
+    { key: "wtype", label: "天体类型", fmt: b => bodyTypeLabel(b),
+      title: b => b.isSystem ? systemTypeSummary(b.r) : null },
+    { key: "rarity", label: "稀有度", fmt: b => RARITY_LABEL[b.r.rarity] },
+    { key: "strength", label: "强度", num: true, fmt: b => b.r.strength },
+    { key: "syskind", label: "星系类型", fmt: b => zh(SYS_ZH, b.r.syskind) },
+    { key: "size", label: "规模", num: true, fmt: b => b.size == null ? "—" : sizeX(b.size) },
+    { key: "mine", label: "采矿速率", num: true, fmt: b => fmt(b.mine) },
+    { key: "pop", label: "人口上限", num: true, fmt: b => fmt(b.pop) },
+    { key: "hab", label: "宜居度", num: true, fmt: b => fmt(b.hab) },
+    { key: "matCount", label: "资源", num: true }
+  ];
+
+  function sortValue(b, key) {
+    const r = b.r;
+    if (key === "kind") return KIND_ORDER.indexOf(r.kind);
+    if (key === "rarity") return RARITY_ORDER.indexOf(r.rarity);
+    if (key === "seq") return r.seq;
+    if (key === "strength") return r.strength;
+    if (key === "syskind") return zh(SYS_ZH, r.syskind);
+    if (key === "label") return b.label || "";
+    if (key === "wtype") return bodyTypeLabel(b);
+    return b[key];
+  }
+
+  function buildTableHead() {
+    const tr = elem("tr");
+    COLS.forEach(c => {
+      const th = elem("th", { class: c.num ? "num" : "" });
+      const b = elem("button", { type: "button" }, c.label);
+      b.addEventListener("click", () => {
+        if (state.sortKey === c.key) state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
+        else { state.sortKey = c.key; state.sortDir = "asc"; }
+        updateSortMarks();
+        renderTable();
+      });
+      th.appendChild(b);
+      tr.appendChild(th);
+    });
+    const head = $("#tableHead");
+    head.textContent = "";
+    head.appendChild(tr);
+  }
+
+  function updateSortMarks() {
+    const ths = $("#tableHead").querySelectorAll("th");
+    COLS.forEach((c, i) => {
+      const th = ths[i];
+      if (c.key === state.sortKey) th.setAttribute("data-sort", state.sortDir);
+      else th.removeAttribute("data-sort");
+    });
+  }
+
+  function maxPage() {
+    return Math.max(1, Math.ceil(tableBodies.length / state.pageSize));
+  }
+
+  function buildResPanel(b) {
+    const panel = elem("div", { class: "res-panel" });
+    if (!b.matTotals) {
+      panel.appendChild(elem("div", { class: "res-head" },
+        "恒星本体 · " + bodyTypeLabel(b) + " · 恒星能量 " + compact(b.r.cap)));
+      return panel;
+    }
+    if (b.isSystem) {
+      panel.appendChild(elem("div", { class: "res-head" },
+        "星系本体 · " + b.r.body + " 个天体 · 资源合计 " + fmt(b.mine) +
+        " · " + zh(SYS_ZH, b.r.syskind)));
+    } else {
+      panel.appendChild(elem("div", { class: "res-head" },
+        "主采矿产物 " + zh(MATERIAL_ZH, b.w.minePrimary) +
+        " · 资源合计 " + fmt(b.mine) +
+        " · " + zh(WORLD_ZH, b.wtype) + " / " + zh(BODY_ZH, b.bodyKind)));
+    }
+
+    const mats = Object.entries(b.matTotals).sort((a, c) => c[1] - a[1]);
+    const grid = elem("div", { class: "res-grid" });
+    const max = mats.length ? mats[0][1] : 0;
+    mats.forEach(([m, v]) => {
+      const item = elem("div", { class: "res-item", title: m });
+      item.appendChild(elem("span", { class: "res-name" }, zh(MATERIAL_ZH, m)));
+      item.appendChild(elem("span", { class: "res-val" }, fmt(v)));
+      const track = elem("div", { class: "res-track" });
+      const fill = elem("div", { class: "res-fill" });
+      fill.style.width = (max ? Math.max(2, v / max * 100) : 0) + "%";
+      track.appendChild(fill);
+      item.appendChild(track);
+      grid.appendChild(item);
+    });
+    if (!mats.length) grid.appendChild(elem("div", { class: "res-empty" }, "该档案没有资源数据"));
+    panel.appendChild(grid);
+    return panel;
+  }
+
+  function toggleRes(b, btn, row) {
+    const open = !state.openRes.has(b.key);
+    if (open) state.openRes.add(b.key); else state.openRes.delete(b.key);
+    row.hidden = !open;
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+    btn.textContent = open ? "收起 ▴" : b.matCount + " 种资源 ▾";
+  }
+
+  function renderTable() {
+    const total = tableBodies.length;
+    state.page = Math.min(state.page, maxPage() - 1);
+
+    const sorted = tableBodies.slice().sort((a, b) => {
+      const va = sortValue(a, state.sortKey);
+      const vb = sortValue(b, state.sortKey);
+      let c;
+      if (typeof va === "string" || typeof vb === "string") c = String(va).localeCompare(String(vb));
+      else c = (va || 0) - (vb || 0);
+      return state.sortDir === "asc" ? c : -c;
+    });
+
+    const start = state.page * state.pageSize;
+    const pageRows = sorted.slice(start, start + state.pageSize);
+    const tbody = $("#tableBody");
+    tbody.textContent = "";
+
+    if (!pageRows.length) {
+      const tr = elem("tr", { class: "empty-row" });
+      const td = elem("td", { colspan: String(COLS.length) }, "当前筛选无匹配档案");
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    } else {
+      pageRows.forEach(b => {
+        const resRow = elem("tr", { class: "res-row" });
+        const resTd = elem("td", { colspan: String(COLS.length) });
+        resTd.appendChild(buildResPanel(b));
+        resRow.appendChild(resTd);
+        resRow.hidden = !state.openRes.has(b.key);
+
+        const tr = elem("tr", { tabindex: "0" });
+        COLS.forEach(c => {
+          const td = elem("td", { class: c.num ? "num" : (c.key === "label" ? "id" : "") });
+          if (c.key === "matCount") {
+            if (b.matCount) {
+              const open = state.openRes.has(b.key);
+              const btn = elem("button", {
+                type: "button", class: "res-toggle",
+                "aria-expanded": open ? "true" : "false"
+              }, open ? "收起 ▴" : b.matCount + " 种资源 ▾");
+              btn.addEventListener("click", e => {
+                e.stopPropagation();
+                toggleRes(b, btn, resRow);
+              });
+              td.appendChild(btn);
+            } else {
+              td.textContent = "—";
+            }
+          } else {
+            td.textContent = c.fmt ? c.fmt(b) : (b[c.key] == null ? "—" : String(b[c.key]));
+          }
+          if (c.title) td.title = c.title(b);
+          tr.appendChild(td);
+        });
+        tr.addEventListener("click", () => openDetail(b.r));
+        tr.addEventListener("keydown", e => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDetail(b.r); }
+        });
+        tbody.appendChild(tr);
+        tbody.appendChild(resRow);
+      });
+    }
+
+    $("#pageInfo").textContent = "第 " + (state.page + 1) + " / " + maxPage() +
+      " 页 · 共 " + fmt(total) + " 个档案";
+    $("#prevPage").disabled = state.page <= 0;
+    $("#nextPage").disabled = state.page >= maxPage() - 1;
+  }
+
+  function exportCSV() {
+    const head = ["档案", "档案编号", "创建序号", "创建步数", "档案类型", "天体类型",
+      "稀有度", "强度", "星系类型", "天体数", "规模（×10000）", "采矿速率", "人口上限", "宜居度",
+      "资源种类", "主采矿产物", "资源明细", "系统名称"];
+    const rowsSorted = tableBodies.slice().sort((a, b) => {
+      const va = sortValue(a, state.sortKey), vb = sortValue(b, state.sortKey);
+      let c = typeof va === "string" ? String(va).localeCompare(String(vb)) : (va || 0) - (vb || 0);
+      return state.sortDir === "asc" ? c : -c;
+    });
+    const lines = [head.map(csvCell).join(",")];
+    rowsSorted.forEach(b => {
+      const r = b.r;
+      const primary = b.w ? zh(MATERIAL_ZH, b.w.minePrimary) : "";
+      const matDetail = b.matTotals
+        ? Object.entries(b.matTotals).sort((x, y) => y[1] - x[1])
+            .map(([m, v]) => zh(MATERIAL_ZH, m) + ":" + v).join("|")
+        : "";
+      lines.push([
+        b.label, r.id, r.seq, r.step, KIND_LABEL[r.kind] || r.kind, bodyTypeLabel(b),
+        RARITY_LABEL[r.rarity] || r.rarity, r.strength, zh(SYS_ZH, r.syskind),
+        r.body, b.size == null ? "" : b.size / 1e4, b.mine, b.pop, b.hab, b.matCount, primary, matDetail,
+        shortLabel(r.sysLabel)
+      ].map(csvCell).join(","));
+    });
+    const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "星海档案_筛选结果.csv";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  function csvCell(v) {
+    const s = v == null ? "" : String(v);
+    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  // ---------- drawer ----------
+  const drawer = $("#drawer");
+  const backdrop = $("#backdrop");
+
+  function kv(label, value, mono) {
+    const d = elem("div", { class: "kv" });
+    d.appendChild(elem("div", { class: "kv-label" }, label));
+    const v = elem("div", { class: mono ? "kv-value seed" : "kv-value" }, value == null ? "—" : String(value));
+    d.appendChild(v);
+    return d;
+  }
+
+  function openDetail(r) {
+    $("#drawerTitle").textContent = r.id;
+    const body = $("#drawerBody");
+    body.textContent = "";
+
+    const chips = elem("div", { class: "chip-row", style: "margin-bottom:12px" });
+    const c1 = elem("span", { class: "chip-static" });
+    c1.appendChild(elem("i", { class: "dot kind-" + r.kind }));
+    c1.appendChild(document.createTextNode(KIND_LABEL[r.kind] || r.kind));
+    chips.appendChild(c1);
+    const c2 = elem("span", { class: "chip-static" });
+    c2.appendChild(elem("i", { class: "swatch rar-" + r.rarity }));
+    c2.appendChild(document.createTextNode(RARITY_LABEL[r.rarity] || r.rarity));
+    chips.appendChild(c2);
+    chips.appendChild(elem("span", { class: "chip-static" }, "强度 " + r.strength));
+    chips.appendChild(elem("span", { class: "chip-static" }, shortLabel(r.sysLabel)));
+    body.appendChild(chips);
+
+    const isStar = r.kind === "star";
+    body.appendChild(elem("div", { class: "section-title" }, "指标"));
+    const grid = elem("div", { class: "kv-grid" });
+    grid.appendChild(kv("天体数", r.body));
+    grid.appendChild(kv("规模", isStar ? "—" : sizeX(r.size)));
+    grid.appendChild(kv("采矿速率", isStar ? "—" : fmt(r.mine)));
+    grid.appendChild(kv("恒星能量（千瓦）", compact(r.cap)));
+    grid.appendChild(kv("距离（毫光年）", fmt(r.dist)));
+    grid.appendChild(kv("人口上限", isStar ? "—" : fmt(r.pops)));
+    grid.appendChild(kv("资源种类", isStar ? "—" : r.matCount));
+    grid.appendChild(kv("星系类型", zh(SYS_ZH, r.syskind)));
+    grid.appendChild(kv("行星类型", zh(PLANET_ZH, r.pkind)));
+    grid.appendChild(kv("恒星分类", zh(STELLAR_ZH, r.sclass)));
+    grid.appendChild(kv("创建序列", r.seq));
+    grid.appendChild(kv("创建步数", r.step));
+    body.appendChild(grid);
+
+    body.appendChild(elem("div", { class: "section-title" }, "标识信息"));
+    body.appendChild(elem("div", { class: "seed" }, "种子：" + (r.seed || "—")));
+    body.appendChild(elem("div", { class: "seed", style: "margin-top:4px" },
+      "来源：" + (r.origin === "self" ? "自身" : (r.origin || "—")) +
+      " · 收藏：" + (r.fav ? "是" : "否")));
+
+    body.appendChild(elem("div", { class: "section-title" },
+      isStar ? "星系天体（预览） · " + r.worlds.length : "天体 · " + r.worlds.length));
+    if (isStar && r.worlds.length) {
+      body.appendChild(elem("div", { class: "seed", style: "margin-bottom:8px" },
+        "以下为档案生成星系中的天体，不计入档案本体。"));
+    }
+    let maxBps = 0;
+    r.worlds.forEach(w => Object.values(w.mats).forEach(v => { if (v > maxBps) maxBps = v; }));
+    r.worlds.forEach(w => {
+      const card = elem("div", { class: "world-card" });
+      card.appendChild(elem("div", { class: "world-title" }, w.label || "—"));
+      card.appendChild(elem("div", { class: "world-sub" },
+        zh(WORLD_ZH, w.wtype) + " · " + zh(ENV_ZH, w.env) + " · " + zh(BODY_ZH, w.bodyKind) +
+        " · " + zh(SITE_ZH, w.site) + " · " + zh(CANVAS_ZH, w.canvas)));
+      card.appendChild(elem("div", { class: "world-sub" },
+        "规模 " + sizeX(w.size) + " · 人口上限 " + fmt(w.pop) + " · 宜居度 " + fmt(w.hab) +
+        " · 主采矿产物 " + zh(MATERIAL_ZH, w.minePrimary)));
+      const mats = Object.entries(w.mats).sort((a, b) => b[1] - a[1]);
+      const details = document.createElement("details");
+      details.className = "res-details";
+      const summary = document.createElement("summary");
+      summary.textContent = "资源 · " + mats.length + " 种";
+      details.appendChild(summary);
+      mats.forEach(([m, v]) => {
+        const row = elem("div", { class: "mat-row" });
+        row.appendChild(elem("div", { class: "mat-name", title: m }, zh(MATERIAL_ZH, m)));
+        const track = elem("div", { class: "mat-track" });
+        const fill = elem("div", { class: "mat-fill" });
+        fill.style.width = (maxBps ? Math.max(2, v / maxBps * 100) : 0) + "%";
+        track.appendChild(fill);
+        row.appendChild(track);
+        row.appendChild(elem("div", { class: "mat-val" }, fmt(v)));
+        details.appendChild(row);
+      });
+      if (!mats.length) details.appendChild(elem("div", { class: "world-sub" }, "无资源数据"));
+      card.appendChild(details);
+      body.appendChild(card);
+    });
+
+    drawer.classList.add("open");
+    drawer.setAttribute("aria-hidden", "false");
+    backdrop.classList.add("open");
+    $("#drawerClose").focus();
+  }
+
+  function closeDrawer() {
+    drawer.classList.remove("open");
+    drawer.setAttribute("aria-hidden", "true");
+    backdrop.classList.remove("open");
+  }
+
+  // ---------- render ----------
+  function renderAll() {
+    filtered = rows.filter(matches);
+    rebuildBodies();
+    updateKpis();
+    renderKindChart();
+    renderRarityChart();
+    renderBodyChart();
+    renderResourceChart();
+    renderScatter("scatterMiningBase", "scatterMiningOverlay", {
+      xKey: "size", yKey: "mine", xLog: false, yLog: false,
+      xLabel: "规模（×10000）", yLabel: "采矿速率",
+      xFmt: sizeX, yFmt: fmt, height: 348
+    });
+    renderScatter("scatterCapacityBase", "scatterCapacityOverlay", {
+      xKey: "dist", yKey: "cap", xLog: false, yLog: true,
+      xLabel: "距离（毫光年）", yLabel: "恒星能量（千瓦，对数）",
+      xFmt: fmt, yFmt: compact, yTickFmt: powLabel, height: 348
+    });
+    renderTable();
+  }
+
+  // ---------- theme ----------
+  const themeBtn = $("#themeBtn");
+  function effectiveDark() {
+    const t = document.documentElement.getAttribute("data-theme");
+    if (t) return t === "dark";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+  function syncThemeLabel() {
+    themeBtn.textContent = effectiveDark() ? "浅色" : "深色";
+  }
+  function applyTheme(theme) {
+    if (theme) document.documentElement.setAttribute("data-theme", theme);
+    else document.documentElement.removeAttribute("data-theme");
+    try { localStorage.setItem("starsea-theme", theme || ""); } catch (e) {}
+    syncThemeLabel();
+    renderAll();
+  }
+  themeBtn.addEventListener("click", () => applyTheme(effectiveDark() ? "light" : "dark"));
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    if (!document.documentElement.getAttribute("data-theme")) {
+      syncThemeLabel();
+      renderAll();
+    }
+  });
+
+  // ---------- 载入外部 JSON ----------
+  function updateMasthead() {
+    $("#brandSub").textContent = "版本 " + META.revision +
+      " · " + fmt(META.artifactCount) + " 个档案 / " + fmt(META.worldCount || 0) + " 个本体天体" +
+      (META.scenario ? " · " + META.scenario : "") +
+      " · 生成于 " + META.generatedAt;
+    $("#footer").textContent = "数据源 " + META.source + " · universe.cosmic_starsea · 版本 " +
+      META.version +
+      (META.saveFormat ? " · 存档格式 v" + META.saveFormat : "") +
+      (META.rulesVersion ? " · 规则 " + META.rulesVersion : "") +
+      " · 抽取回执 " + fmt(META.bangReceipts) + " · 放置回执 " +
+      fmt(META.placementReceipts) + " · 退役世界 " + fmt(META.retiredWorldCount);
+  }
+
+  function materialCounts(list) {
+    const counts = {};
+    list.forEach(r => r.mats.forEach(m => { counts[m] = (counts[m] || 0) + 1; }));
+    return Object.fromEntries(Object.entries(counts)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])));
+  }
+
+  function systemCounts(list) {
+    const counts = {};
+    list.forEach(r => {
+      const k = r.syskind || "—";
+      counts[k] = (counts[k] || 0) + 1;
+    });
+    return Object.fromEntries(Object.entries(counts)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])));
+  }
+
+  function extractStarsea(obj) {
+    if (!obj || typeof obj !== "object") return null;
+    if (obj.cosmic_starsea && typeof obj.cosmic_starsea === "object") return obj.cosmic_starsea;
+    if (obj.universe && obj.universe.cosmic_starsea) return obj.universe.cosmic_starsea;
+    if (obj.artifacts && obj.slots && obj.revision !== undefined) return obj;
+    return null;
+  }
+
+  function buildRowsFromStarsea(cs) {
+    const out = [];
+    const arts = cs.artifacts || {};
+    for (const aid in arts) {
+      const art = arts[aid] || {};
+      const defn = art.definition || {};
+      const desc = defn.descriptor || {};
+      const template = defn.template || {};
+      const system = template.system || {};
+      const scond = system.conditions || {};
+
+      const kind = defn.kind;
+      const isStar = kind === "star";
+
+      const worlds = [];
+      const matsSet = new Set();
+      let totalSize = 0, sizeMax = 0, totalMine = 0, popSum = 0;
+      let solarMax = 0, windMax = 0, habMax = 0;
+      let cap = Number(scond.stellar_capacity_kw || 0);
+
+      for (const w of (template.worlds || [])) {
+        const c = w.conditions || {};
+        const ext = c.extraction || {};
+        const pm = ext.per_material_bps || {};
+        const wm = {};
+        for (const k in pm) {
+          const v = Number(pm[k] || 0);
+          if (v) wm[k] = v;
+        }
+        const wsize = Number(c.size_bps || 0);
+        const wpops = Number(c.natural_population_capacity || 0);
+        totalSize += wsize;
+        sizeMax = Math.max(sizeMax, wsize);
+        for (const k in wm) totalMine += wm[k];
+        popSum += wpops;
+        solarMax = Math.max(solarMax, Number(c.solar_output_bps || 0));
+        windMax = Math.max(windMax, Number(c.wind_output_bps || 0));
+        habMax = Math.max(habMax, Number(c.habitability_bps || 0));
+        if (!cap) cap = Math.max(cap, Number(c.stellar_capacity_kw || 0));
+        for (const k in wm) matsSet.add(k);
+        worlds.push({
+          label: w.label, wtype: w.world_type, env: w.environment_id,
+          bodyKind: c.body_kind, site: c.site_kind, canvas: c.canvas_kind,
+          size: wsize, pop: wpops, hab: Number(c.habitability_bps || 0),
+          minePrimary: c.mining_primary_item, mats: wm
+        });
+      }
+
+      // 恒星档案的本体只有恒星；template.worlds 是生成星系的预览天体，
+      // 不计入档案本体，也不参与档案级聚合。
+      if (isStar) {
+        matsSet.clear();
+        totalSize = sizeMax = totalMine = popSum = 0;
+        solarMax = windMax = habMax = 0;
+      }
+      const bodyCount = isStar ? Math.max(1, Number(defn.body_count || 0)) : worlds.length;
+
+      out.push({
+        id: aid,
+        seq: art.created_sequence,
+        step: art.created_at_step,
+        kind,
+        rarity: defn.rarity,
+        strength: desc.strength,
+        origin: art.origin,
+        fav: !!art.favorite,
+        seed: desc.seed,
+        body: bodyCount,
+        syskind: defn.system_kind_id,
+        sclass: defn.stellar_class || system.stellar_class,
+        pkind: defn.planet_kind_id,
+        dist: Number(system.distance_milli_light_years || 0),
+        cap,
+        size: totalSize,
+        sizeMax,
+        mine: totalMine,
+        pops: popSum,
+        solar: solarMax,
+        wind: windMax,
+        hab: habMax,
+        matCount: matsSet.size,
+        mats: Array.from(matsSet).sort(),
+        sysLabel: system.label,
+        worlds
+      });
+    }
+    return out;
+  }
+
+  function applyStarsea(cs, sourceName, saveMeta) {
+    rows = buildRowsFromStarsea(cs);
+    MATERIALS = materialCounts(rows);
+    SYSTEMS = systemCounts(rows);
+
+    const kinds = {}, rarities = {};
+    rows.forEach(r => {
+      kinds[r.kind] = (kinds[r.kind] || 0) + 1;
+      rarities[r.rarity] = (rarities[r.rarity] || 0) + 1;
+    });
+    saveMeta = saveMeta || {};
+    META = {
+      source: sourceName,
+      revision: cs.revision,
+      version: cs.version,
+      nextBangSequence: cs.next_bang_sequence,
+      nextPlacementSequence: cs.next_placement_sequence,
+      artifactCount: rows.length,
+      worldCount: rows.reduce((s, r) => s + r.body, 0),
+      saveFormat: saveMeta.saveFormat,
+      saveMagic: saveMeta.saveMagic,
+      scenario: saveMeta.scenario,
+      rulesVersion: saveMeta.rulesVersion,
+      savedAtUtc: saveMeta.savedAtUtc,
+      generatedAt: new Date().toLocaleString("zh-CN", { hour12: false }),
+      kinds, rarities,
+      slots: Object.keys(cs.slots || {}),
+      retiredWorldCount: (cs.retired_world_ids || []).length,
+      bangReceipts: Object.keys(cs.bang_receipts || {}).length,
+      placementReceipts: Object.keys(cs.placement_receipts || {}).length
+    };
+
+    resetState();
+    $("#searchField").value = "";
+    $("#searchInput").value = "";
+    $("#metricMin").value = "";
+    $("#metricMax").value = "";
+    $("#metricMin").disabled = true;
+    $("#metricMax").disabled = true;
+    refreshOptions();
+    computeDomains();
+    updateMasthead();
+    renderAll();
+  }
+
+  async function handleJsonFile(file) {
+    if (!file) return;
+    const status = $("#loadStatus");
+    status.textContent = "正在读取 " + file.name + " …";
+    try {
+      const text = await file.text();
+      status.textContent = "正在解析 " + file.name + " …";
+      await new Promise(resolve => setTimeout(resolve, 30));
+      const data = JSON.parse(text);
+      const cs = extractStarsea(data);
+      if (!cs) {
+        if (data && typeof data.payload === "string" && data.storage)
+          throw new Error("这是新版压缩存档，请先用 starsea_parser.py export 导出，或直接运行 build_starsea_dashboard.py");
+        throw new Error("文件中没有 cosmic_starsea 数据");
+      }
+      applyStarsea(cs, file.name, {
+        saveFormat: data.format_version,
+        saveMagic: data.save_magic,
+        scenario: data.scenario_id,
+        rulesVersion: data.rules_version,
+        savedAtUtc: data.saved_at_utc
+      });
+      status.textContent = "已载入 " + file.name + "（" + fmt(rows.length) + " 个档案）";
+    } catch (err) {
+      console.error(err);
+      status.textContent = "载入失败：" + (err && err.message ? err.message : String(err));
+    }
+  }
+
+  // ---------- init ----------
+  try {
+    const saved = localStorage.getItem("starsea-theme");
+    if (saved === "light" || saved === "dark") document.documentElement.setAttribute("data-theme", saved);
+  } catch (e) {}
+  syncThemeLabel();
+
+  updateMasthead();
+
+  $("#loadBtn").addEventListener("click", () => $("#fileInput").click());
+  $("#fileInput").addEventListener("change", e => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (f) handleJsonFile(f);
+  });
+  document.addEventListener("dragover", e => e.preventDefault());
+  document.addEventListener("drop", e => {
+    e.preventDefault();
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) handleJsonFile(f);
+  });
+
+  buildTableHead();
+  initControls();
+  updateSortMarks();
+  renderAll();
+
+  let resizeTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { renderAll(); }, 180);
+  });
+})();
+</script>
+</body>
+</html>

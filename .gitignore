@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# 构建产物（HTML、导出的 JSON/CSV）
+dist/*
+!dist/.gitkeep
+
+# 输入数据（游戏存档，个人数据）
+data/*
+!data/.gitkeep
+
+# 编辑器 / 系统文件
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
