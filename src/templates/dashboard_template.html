@@ -2104,16 +2104,34 @@
   function populateSortSelect() {
     const sel = $("#sortKey");
     if (!sel) return;
-    const opts = state.view === "world" ? SORT_OPTS_W : SORT_OPTS;
+    const base = state.view === "world" ? SORT_OPTS_W : SORT_OPTS;
+    const mats = new Set();
+    if (state.view === "world") {
+      WORLD_ROWS.forEach(w => w.mats.forEach(m => mats.add(m)));
+    } else {
+      Object.keys(MATERIALS).forEach(m => mats.add(m));
+    }
+
     sel.textContent = "";
-    opts.forEach(([value, label]) =>
+    base.forEach(([value, label]) =>
       sel.appendChild(elem("option", { value }, label)));
-    if (!opts.some(([value]) => value === state.sortKey))
-      state.sortKey = opts[0][0];
+    if (mats.size) {
+      const group = elem("optgroup", { label: "按单个资源" });
+      Array.from(mats).sort().forEach(m => {
+        group.appendChild(elem("option", { value: "mat:" + m },
+          "资源：" + zh(MATERIAL_ZH, m)));
+      });
+      sel.appendChild(group);
+    }
+
+    const validMat = state.sortKey.startsWith("mat:") && mats.has(state.sortKey.slice(4));
+    if (!validMat && !base.some(([value]) => value === state.sortKey))
+      state.sortKey = base[0][0];
     sel.value = state.sortKey;
   }
 
   function sortValueWorld(w, key) {
+    if (key.startsWith("mat:")) return (w.matTotals || {})[key.slice(4)] || 0;
     if (key === "wtype") return zh(WORLD_ZH, w.wtype);
     if (key === "system") return w.sysLabel || "";
     if (key === "sclass") return zh(STELLAR_ZH, w.sclass);
@@ -2147,6 +2165,7 @@
     if (key === "pops") return r.pops || 0;
     if (key === "label") return b.label || "";
     if (key === "wtype") return bodyTypeLabel(b);
+    if (key.startsWith("mat:")) return (b.matTotals || {})[key.slice(4)] || 0;
     return b[key] || 0;
   }
 
