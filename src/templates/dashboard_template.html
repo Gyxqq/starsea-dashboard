@@ -326,7 +326,7 @@
   </div>
   <div class="topbar-spacer"></div>
   <span class="load-status" id="loadStatus"></span>
-  <button class="btn" id="loadBtn" type="button" title="选择或拖入 JSON；新版压缩存档请先用 starsea_parser.py export 导出">载入 JSON</button>
+  <button class="btn" id="loadBtn" type="button" title="选择或拖入 JSON；新版压缩存档请先运行 python src/starsea_parser.py export 导出">载入 JSON</button>
   <input type="file" id="fileInput" accept=".json,application/json" hidden>
   <button class="btn" id="themeBtn" type="button">深色</button>
 </header>
@@ -512,6 +512,8 @@
 <div class="tooltip" id="tooltip" role="status"></div>
 
 <script>/*__STARSEA_DATA__*/</script>
+<script type="text/plain" id="brotliWasm">/*__BROTLI_WASM_B64__*/</script>
+<script type="module">/*__BROTLI_DECODER__*/</script>
 <script>
 (function () {
   "use strict";
@@ -915,7 +917,9 @@
   function updateKpis() {
     const n = filtered.length;
     $("#heroValue").textContent = fmt(n);
-    $("#heroSub").textContent = "版本 " + META.revision + " · " + META.source;
+    $("#heroSub").textContent = rows.length
+      ? "版本 " + META.revision + " · " + META.source
+      : "尚未载入存档 · 使用右上角「载入 JSON」或拖入文件";
     $("#matchInfo").textContent = "匹配 " + fmt(n) + " / " + fmt(rows.length) + " 条";
     $("#kpiWonder").textContent = fmt(filtered.filter(r => r.rarity === "wonder").length);
     $("#kpiRare").textContent = fmt(filtered.filter(r => r.rarity === "rare" || r.rarity === "wonder").length);
@@ -1559,7 +1563,10 @@
 
     if (!pageRows.length) {
       const tr = elem("tr", { class: "empty-row" });
-      const td = elem("td", { colspan: String(COLS.length) }, "当前筛选无匹配档案");
+      const emptyText = rows.length
+        ? "当前筛选无匹配档案"
+        : "尚未载入存档 · 请使用右上角「载入 JSON」";
+      const td = elem("td", { colspan: String(COLS.length) }, emptyText);
       tr.appendChild(td);
       tbody.appendChild(tr);
     } else {
@@ -1970,6 +1977,53 @@
     renderAll();
   }
 
+  // 新版存档：外层 { payload(base64), storage }，内层为 brotli 压缩的 JSON。
+  // 浏览器没有内置 Brotli 解码器；较新的 Firefox/Safari 支持
+  // DecompressionStream('brotli')，Chrome 目前会抛 Unsupported compression format。
+  async function expandCompressedSave(data) {
+    const algo = String((data.storage && data.storage.algorithm) || "").toLowerCase();
+    if (!algo.startsWith("brotli"))
+      throw new Error("不支持的压缩算法：" + (algo || "(未标注)"));
+
+    const bin = atob(data.payload);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+
+    // 模块脚本是延迟执行的；刚打开页面就选文件时等它一下
+    if (!window.__brotliReady && document.getElementById("brotliWasm")) {
+      for (let i = 0; i < 20 && !window.__brotliReady; i++)
+        await new Promise(r => setTimeout(r, 25));
+    }
+
+    // 1) 构建时内嵌的 WASM 解码器（离线可用，Chrome/Firefox/Safari 均可）
+    if (window.__brotliReady) {
+      try {
+        const brotli = await window.__brotliReady;
+        if (brotli && typeof brotli.decompress === "function") {
+          const out = brotli.decompress(bytes);
+          return JSON.parse(new TextDecoder("utf-8").decode(out));
+        }
+      } catch (e) {
+        console.warn("内置 Brotli 解码器失败，尝试 DecompressionStream", e);
+      }
+    }
+
+    // 2) 浏览器原生 DecompressionStream('brotli')（较新的 Firefox/Safari）
+    if (typeof DecompressionStream === "function") {
+      try {
+        const ds = new DecompressionStream("brotli");
+        const text = await new Response(new Blob([bytes]).stream().pipeThrough(ds)).text();
+        return JSON.parse(text);
+      } catch (e) {
+        console.warn("DecompressionStream('brotli') 不可用", e);
+      }
+    }
+
+    throw new Error("Brotli 解码器不可用。请用 "
+      + "python src/starsea_parser.py export 导出后载入，"
+      + "或运行 python src/build_starsea_dashboard.py -i <存档> 生成数据版");
+  }
+
   async function handleJsonFile(file) {
     if (!file) return;
     const status = $("#loadStatus");
@@ -1978,20 +2032,22 @@
       const text = await file.text();
       status.textContent = "正在解析 " + file.name + " …";
       await new Promise(resolve => setTimeout(resolve, 30));
-      const data = JSON.parse(text);
-      const cs = extractStarsea(data);
-      if (!cs) {
-        if (data && typeof data.payload === "string" && data.storage)
-          throw new Error("这是新版压缩存档，请先用 starsea_parser.py export 导出，或直接运行 build_starsea_dashboard.py");
-        throw new Error("文件中没有 cosmic_starsea 数据");
-      }
-      applyStarsea(cs, file.name, {
+      let data = JSON.parse(text);
+      const saveMeta = {
         saveFormat: data.format_version,
         saveMagic: data.save_magic,
         scenario: data.scenario_id,
         rulesVersion: data.rules_version,
         savedAtUtc: data.saved_at_utc
-      });
+      };
+      if (data && typeof data.payload === "string" && data.storage) {
+        status.textContent = "正在解压 " + file.name + " …";
+        await new Promise(resolve => setTimeout(resolve, 30));
+        data = await expandCompressedSave(data);
+      }
+      const cs = extractStarsea(data);
+      if (!cs) throw new Error("文件中没有 cosmic_starsea 数据");
+      applyStarsea(cs, file.name, saveMeta);
       status.textContent = "已载入 " + file.name + "（" + fmt(rows.length) + " 个档案）";
     } catch (err) {
       console.error(err);

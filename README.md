@@ -28,7 +28,7 @@
 ### 环境
 
 - Python 3.11+
-- 第三方依赖仅 `brotli`（新版存档解压用）
+- 第三方依赖仅 `brotli`（CLI / 构建时解压新版存档用；浏览器端解码器已内置于 HTML）
 
 ```bash
 pip install brotli
@@ -47,13 +47,17 @@ python src/starsea_parser.py show 7b347396            # 支持唯一 id 前缀
 # 3. 导出 cosmic_starsea 子树（供网页版“载入 JSON”使用）
 python src/starsea_parser.py export --output dist/cosmic_starsea.json
 
-# 4. 重新生成仪表盘（默认输出 dist/starsea_dashboard.html）
+# 4. 构建空壳（不含数据，默认输出 dist/starsea_dashboard.html）
 python src/build_starsea_dashboard.py
-# 或指定存档 / 输出
-python src/build_starsea_dashboard.py -i data/m0-slot.json -o dist/starsea_dashboard.html
+
+# 5. 构建内嵌数据的仪表盘（默认输出 dist/starsea_dashboard_data.html）
+python src/build_starsea_dashboard.py -i data/m0-slot.json
 ```
 
-生成后直接双击 `dist/starsea_dashboard.html` 即可离线使用，无需服务器。
+- `dist/starsea_dashboard.html`：空壳，约 0.4 MB（内含 Brotli WASM 解码器），打开后通过右上角“载入 JSON”加载存档
+- `dist/starsea_dashboard_data.html`：内嵌数据，约 11 MB，双击即可离线使用
+
+两者都无需服务器。
 
 ---
 
@@ -64,12 +68,15 @@ starsea-dashboard/
 ├── src/                        # 源码
 │   ├── starsea_parser.py       # 存档解码、cosmic_starsea 解析器与 CLI
 │   ├── build_starsea_dashboard.py
-│   └── templates/
-│       └── dashboard_template.html  # 仪表盘模板（HTML/CSS/JS）
+│   ├── templates/
+│   │   └── dashboard_template.html  # 仪表盘模板（HTML/CSS/JS）
+│   └── vendor/
+│       └── brotli-dec-wasm/    # 浏览器端 Brotli WASM 解码器
 ├── data/                       # 输入数据（游戏存档，默认不进 git）
 │   └── m0-slot.json
 ├── dist/                       # 构建产物（默认不进 git）
-│   └── starsea_dashboard.html  # 生成的单文件离线仪表盘
+│   ├── starsea_dashboard.html       # 空壳（无数据，可在网页里载入 JSON）
+│   └── starsea_dashboard_data.html  # 内嵌数据的单文件离线仪表盘
 ├── .gitignore
 └── README.md
 ```
@@ -77,9 +84,11 @@ starsea-dashboard/
 | 路径 | 大小 | 作用 |
 |---|---:|---|
 | `src/starsea_parser.py` | ~27 KB | 存档解码、`cosmic_starsea` 解析器与 CLI |
-| `src/build_starsea_dashboard.py` | ~8 KB | 把解析结果压缩成仪表盘 payload，注入模板 |
+| `src/build_starsea_dashboard.py` | ~9 KB | 把解析结果压缩成仪表盘 payload，注入模板 |
 | `src/templates/dashboard_template.html` | ~86 KB | 仪表盘模板（HTML/CSS/JS，数据占位符） |
-| `dist/starsea_dashboard.html` | ~11 MB | 已生成的单文件离线仪表盘（构建产物） |
+| `src/vendor/brotli-dec-wasm/` | ~220 KB | 浏览器端 Brotli WASM 解码器（构建时内嵌） |
+| `dist/starsea_dashboard.html` | ~0.4 MB | 空壳仪表盘，通过“载入 JSON”读取存档 |
+| `dist/starsea_dashboard_data.html` | ~11 MB | 内嵌当前数据、可直接分发的单文件仪表盘 |
 | `data/m0-slot.json` | ~9.6 MB | 当前游戏存档（v31，brotli 压缩载荷） |
 
 运行时会生成 `__pycache__/`；`export` 会在 `dist/` 产生较大的子树 JSON，均可按需删除。
@@ -437,12 +446,17 @@ python src/starsea_parser.py export --output dist/cosmic_starsea.json
 ### 构建流程
 
 ```
+# 默认：空壳
+src/templates/dashboard_template.html + 空 payload
+   └─ dist/starsea_dashboard.html（约 0.4 MB，可在网页里载入 JSON）
+
+# -i：内嵌数据
 data/m0-slot.json
    └─ StarseaParser（解码 + 提取）
         └─ build_rows()：每个 artifact 一行紧凑数据（含 worlds）
              └─ build_payload()：meta + materials + systems + rows
                   └─ 注入 src/templates/dashboard_template.html 的 /*__STARSEA_DATA__*/
-                       └─ dist/starsea_dashboard.html（单文件，约 11 MB）
+                       └─ dist/starsea_dashboard_data.html（单文件，约 11 MB）
 ```
 
 注入时会转义 `</`、U+2028、U+2029，避免破坏 `<script>`。
@@ -519,13 +533,19 @@ data/m0-slot.json
 - 拖放 `.json` 到页面
 - 接受旧版完整存档或 `src/starsea_parser.py export` 导出的子树
 
-**新版存档不能直接在浏览器载入**：浏览器没有内置 brotli 解压 API，而 payload 是 base64 + brotli。页面会给出明确提示。两种做法：
+**新版存档（`payload` + `storage`）是 base64 + brotli 压缩的 227 MB JSON**，不是可直接读取的明文。构建时会把 `brotli-dec-wasm`（约 204 KB WASM）内嵌进 HTML，页面按以下顺序解压：
+
+1. 内置 WASM 解码器（Chrome / Firefox / Safari 通用，离线可用）
+2. 浏览器原生 `DecompressionStream('brotli')`（较新的 Firefox / Safari）
+3. 都不可用时给出提示，并建议用 CLI 导出
+
+因此 Chrome 现在也能直接载入新版压缩存档。注意解压后是 227 MB JSON，解析会占用较多内存，低配机器建议用 CLI 生成数据版：
 
 ```bash
-# 方式一：直接重新生成页面（推荐）
-python src/build_starsea_dashboard.py -i data/新存档.json -o dist/starsea_dashboard.html
+# 生成内嵌数据版（推荐）
+python src/build_starsea_dashboard.py -i data/新存档.json -o dist/starsea_dashboard_data.html
 
-# 方式二：先导出子树，再在网页里载入
+# 或先导出子树，再在网页里载入
 python src/starsea_parser.py export --output dist/cosmic_starsea.json
 ```
 
@@ -695,8 +715,8 @@ chrome --headless=new --disable-gpu --window-size=1480,1000 \
 
 ### 已知限制
 
-- **浏览器不能直接解压新版存档**：需 CLI 构建或先 `export` 子树
-- **单文件较大**：当前 HTML 10.9 MB；解码 227 MB JSON 时 Python 峰值内存较高
+- **浏览器解压新版存档占用内存**：内嵌 WASM 解码器可解压，但 227 MB JSON 的解析在低配机器上可能较慢；CLI 数据版更稳
+- **内嵌数据版单文件较大**：`starsea_dashboard_data.html` 约 11 MB；解码 227 MB JSON 时 Python 峰值内存较高
 - **天体标签重复**：源数据只有 `S000001-P01`…`P07`，档案表身份列使用短档案 id，完整 id 在单元格提示与详情抽屉中
 - **只读**：不修改存档，不做回写
 - **图表与表格均按档案聚合**：每个档案一行（行星/恒星本体/整个星系），星系内含天体不再拆行；恒星档案的 `template.worlds` 星系预览天体仅在详情抽屉中展示
@@ -708,7 +728,7 @@ chrome --headless=new --disable-gpu --window-size=1480,1000 \
 - 资源共现矩阵（哪些材料经常一起出现）
 - 槽位对比与“已放置”标记
 - 按星系聚合的距离分布图
-- 内嵌 WebAssembly brotli 解码器，让网页版直接读新版存档
+- ~~内嵌 WebAssembly brotli 解码器，让网页版直接读新版存档~~（已完成，见 `src/vendor/brotli-dec-wasm/`）
 - 导出天体级 CSV 之外的 JSON / Excel
 - 把重复的枚举字典抽成共享 JSON，供 Python 与 JS 共用
 
@@ -718,4 +738,5 @@ chrome --headless=new --disable-gpu --window-size=1480,1000 \
 
 - `data/m0-slot.json` 为游戏导出的单槽存档，包含 `universe.cosmic_starsea`
 - 本工具只读取该文件，不访问游戏进程或网络
-- `dist/starsea_dashboard.html` 为自包含离线文件，可直接分发（内含存档统计结果）
+- `dist/starsea_dashboard.html` 为空壳，可分发后在网页里载入任意存档
+- `dist/starsea_dashboard_data.html` 为自包含离线文件，可直接分发（内含当前存档统计结果）

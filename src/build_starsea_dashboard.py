@@ -4,13 +4,17 @@
 支持新版压缩存档（base64 + brotli payload）与旧版明文存档。
 
 用法（在项目根目录）:
+    # 默认：构建不含数据的空壳，可在网页里“载入 JSON”
     python src/build_starsea_dashboard.py
-    python src/build_starsea_dashboard.py -i data/m0-slot.json -o dist/starsea_dashboard.html
+
+    # 内嵌数据：读取存档并生成自包含仪表盘
+    python src/build_starsea_dashboard.py -i data/m0-slot.json
 """
 
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import sys
 from datetime import datetime
@@ -20,8 +24,12 @@ from starsea_parser import StarseaParser
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_INPUT = ROOT / "data" / "m0-slot.json"
-DEFAULT_OUTPUT = ROOT / "dist" / "starsea_dashboard.html"
+DEFAULT_OUTPUT = ROOT / "dist" / "starsea_dashboard.html"          # 空壳（无数据）
+DEFAULT_DATA_OUTPUT = ROOT / "dist" / "starsea_dashboard_data.html"  # 内嵌数据
 DEFAULT_TEMPLATE = Path(__file__).resolve().with_name("templates") / "dashboard_template.html"
+BROTLI_DIR = Path(__file__).resolve().with_name("vendor") / "brotli-dec-wasm"
+BROTLI_JS = BROTLI_DIR / "brotli_dec_wasm.js"
+BROTLI_WASM = BROTLI_DIR / "brotli_dec_wasm_bg.wasm"
 
 
 def build_rows(parser: StarseaParser) -> list[dict]:
@@ -172,14 +180,76 @@ def build_payload(parser: StarseaParser, rows: list[dict]) -> dict:
     }
 
 
+def empty_payload() -> dict:
+    """不含数据的空仪表盘 payload，可在网页中通过“载入 JSON”加载存档。"""
+    return {
+        "meta": {
+            "source": "（未载入）",
+            "revision": "—",
+            "version": "—",
+            "nextBangSequence": None,
+            "nextPlacementSequence": None,
+            "artifactCount": 0,
+            "worldCount": 0,
+            "saveFormat": None,
+            "saveMagic": None,
+            "scenario": None,
+            "rulesVersion": None,
+            "savedAtUtc": None,
+            "storageAlgorithm": None,
+            "generatedAt": datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z"),
+            "kinds": {},
+            "rarities": {},
+            "slots": [],
+            "retiredWorldCount": 0,
+            "bangReceipts": 0,
+            "placementReceipts": 0,
+        },
+        "materials": {},
+        "systems": {},
+        "rows": [],
+    }
+
+
+def brotli_assets() -> tuple[str, str]:
+    """返回 (解码器 JS, wasm base64)；缺少 vendor 文件时返回空字符串。"""
+    if not (BROTLI_JS.exists() and BROTLI_WASM.exists()):
+        return "", ""
+    js = BROTLI_JS.read_text(encoding="utf-8")
+    # 该 ESM 的默认导出为 wasm 初始化函数（局部名 N），命名导出 decompress。
+    init = """
+const __wasmEl = document.getElementById("brotliWasm");
+if (__wasmEl) {
+  const __b64 = __wasmEl.textContent.trim();
+  if (__b64 && !__b64.startsWith("/*__")) {
+    try {
+      const __bin = atob(__b64);
+      const __bytes = new Uint8Array(__bin.length);
+      for (let i = 0; i < __bin.length; i++) __bytes[i] = __bin.charCodeAt(i);
+      window.__brotliReady = N(__bytes).then(() => ({ decompress }));
+    } catch (e) {
+      console.warn("Brotli decoder init failed", e);
+    }
+  }
+}
+"""
+    wasm_b64 = base64.b64encode(BROTLI_WASM.read_bytes()).decode("ascii")
+    return js + init, wasm_b64
+
+
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description="构建 cosmic_starsea 交互式仪表盘")
+    ap = argparse.ArgumentParser(
+        description="构建 cosmic_starsea 交互式仪表盘（默认构建不含数据的空壳）")
     ap.add_argument("json_name", nargs="?", default=None,
                     help="JSON 文件名（位置参数，等价于 -i）")
     ap.add_argument("-i", "--input", default=None,
-                    help=f"存档或导出的星海 JSON（默认 {DEFAULT_INPUT.relative_to(ROOT)}）")
-    ap.add_argument("-o", "--output", default=str(DEFAULT_OUTPUT),
-                    help=f"输出 HTML（默认 {DEFAULT_OUTPUT.relative_to(ROOT)}）")
+                    help=f"存档或导出的星海 JSON；提供后构建内嵌数据的仪表盘"
+                         f"（如 {DEFAULT_INPUT.relative_to(ROOT)}）")
+    ap.add_argument("-o", "--output", default=None,
+                    help=f"输出 HTML（空壳默认 {DEFAULT_OUTPUT.relative_to(ROOT)}，"
+                         f"数据版默认 {DEFAULT_DATA_OUTPUT.relative_to(ROOT)}）")
+    ap.add_argument("--empty", action="store_true",
+                    help="强制构建不含数据的空壳（忽略 -i）")
     ap.add_argument("--template", default=None,
                     help=f"HTML 模板（默认 {DEFAULT_TEMPLATE.relative_to(ROOT)}）")
     ap.add_argument("--data-out", default=None, help="同时输出紧凑的 JSON 数据（调试用）")
@@ -190,21 +260,16 @@ def main(argv=None) -> int:
     except Exception:
         pass
 
-    if not args.input:
-        args.input = args.json_name
-    if not args.input:
-        if sys.stdin.isatty():
-            try:
-                entered = input(f"请输入 JSON 文件名 [{DEFAULT_INPUT}]: ").strip()
-            except EOFError:
-                entered = ""
-            args.input = entered or str(DEFAULT_INPUT)
-        else:
-            args.input = str(DEFAULT_INPUT)
-
-    parser = StarseaParser(args.input)
-    rows = build_rows(parser)
-    payload = build_payload(parser, rows)
+    input_path = None if args.empty else (args.input or args.json_name)
+    is_empty = not input_path
+    if is_empty:
+        payload = empty_payload()
+        out = Path(args.output) if args.output else DEFAULT_OUTPUT
+    else:
+        parser = StarseaParser(input_path)
+        rows = build_rows(parser)
+        payload = build_payload(parser, rows)
+        out = Path(args.output) if args.output else DEFAULT_DATA_OUTPUT
 
     template_path = Path(args.template) if args.template else DEFAULT_TEMPLATE
     template = template_path.read_text(encoding="utf-8")
@@ -215,7 +280,10 @@ def main(argv=None) -> int:
     data_json = data_json.replace("</", "<\\/").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
     html = template.replace("/*__STARSEA_DATA__*/", "window.STARSEA = " + data_json + ";")
 
-    out = Path(args.output)
+    decoder_js, wasm_b64 = brotli_assets()
+    html = html.replace("/*__BROTLI_DECODER__*/", decoder_js)
+    html = html.replace("/*__BROTLI_WASM_B64__*/", wasm_b64)
+
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(html, encoding="utf-8")
 
@@ -224,8 +292,10 @@ def main(argv=None) -> int:
         data_out.parent.mkdir(parents=True, exist_ok=True)
         data_out.write_text(data_json, encoding="utf-8")
 
-    print(f"已生成 {out}  ({out.stat().st_size / 1048576:.1f} MB)")
-    print(f"  档案: {len(rows)}  资源种类: {len(payload['materials'])}  "
+    size_kb = out.stat().st_size / 1024
+    print(f"已生成 {out}  ({size_kb / 1024:.1f} MB)")
+    print(f"  模式: {'空壳（未载入数据）' if is_empty else '内嵌数据'}  "
+          f"档案: {len(payload['rows'])}  资源种类: {len(payload['materials'])}  "
           f"星系类型: {len(payload['systems'])}")
     return 0
 
