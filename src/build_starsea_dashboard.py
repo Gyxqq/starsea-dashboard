@@ -442,7 +442,7 @@ if (__wasmEl) {
       const __bin = atob(__b64);
       const __bytes = new Uint8Array(__bin.length);
       for (let i = 0; i < __bin.length; i++) __bytes[i] = __bin.charCodeAt(i);
-      window.__brotliReady = N(__bytes).then(() => ({ decompress }));
+      window.__brotliReady = N(__bytes).then(() => ({ decompress, BrotliDecStream }));
     } catch (e) {
       console.warn("Brotli decoder init failed", e);
     }

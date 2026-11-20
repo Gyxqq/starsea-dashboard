@@ -2825,92 +2825,94 @@
     return null;
   }
 
-  function buildRowsFromStarsea(cs) {
-    const out = [];
-    const arts = cs.artifacts || {};
-    for (const aid in arts) {
-      const art = arts[aid] || {};
-      const defn = art.definition || {};
-      const desc = defn.descriptor || {};
-      const template = defn.template || {};
-      const system = template.system || {};
-      const scond = system.conditions || {};
+  function buildRowFromArtifact(aid, art) {
+    art = art || {};
+    const defn = art.definition || {};
+    const desc = defn.descriptor || {};
+    const template = defn.template || {};
+    const system = template.system || {};
+    const scond = system.conditions || {};
 
-      const kind = defn.kind;
-      const isStar = kind === "star";
+    const kind = defn.kind;
+    const isStar = kind === "star";
 
-      const worlds = [];
-      const matsSet = new Set();
-      let totalSize = 0, sizeMax = 0, totalMine = 0, popSum = 0;
-      let solarMax = 0, windMax = 0, habMax = 0;
-      let cap = Number(scond.stellar_capacity_kw || 0);
+    const worlds = [];
+    const matsSet = new Set();
+    let totalSize = 0, sizeMax = 0, totalMine = 0, popSum = 0;
+    let solarMax = 0, windMax = 0, habMax = 0;
+    let cap = Number(scond.stellar_capacity_kw || 0);
 
-      for (const w of (template.worlds || [])) {
-        const c = w.conditions || {};
-        const ext = c.extraction || {};
-        const pm = ext.per_material_bps || {};
-        const wm = {};
-        for (const k in pm) {
-          const v = Number(pm[k] || 0);
-          if (v) wm[k] = v;
-        }
-        const wsize = Number(c.size_bps || 0);
-        const wpops = Number(c.natural_population_capacity || 0);
-        totalSize += wsize;
-        sizeMax = Math.max(sizeMax, wsize);
-        for (const k in wm) totalMine += wm[k];
-        popSum += wpops;
-        solarMax = Math.max(solarMax, Number(c.solar_output_bps || 0));
-        windMax = Math.max(windMax, Number(c.wind_output_bps || 0));
-        habMax = Math.max(habMax, Number(c.habitability_bps || 0));
-        if (!cap) cap = Math.max(cap, Number(c.stellar_capacity_kw || 0));
-        for (const k in wm) matsSet.add(k);
-        worlds.push({
-          label: w.label, wtype: w.world_type, env: w.environment_id,
-          bodyKind: c.body_kind, site: c.site_kind, canvas: c.canvas_kind,
-          size: wsize, pop: wpops, hab: Number(c.habitability_bps || 0),
-          minePrimary: c.mining_primary_item, mats: wm
-        });
+    for (const w of (template.worlds || [])) {
+      const c = w.conditions || {};
+      const ext = c.extraction || {};
+      const pm = ext.per_material_bps || {};
+      const wm = {};
+      for (const k in pm) {
+        const v = Number(pm[k] || 0);
+        if (v) wm[k] = v;
       }
-
-      // 恒星档案的本体只有恒星；template.worlds 是生成星系的预览天体，
-      // 不计入档案本体，也不参与档案级聚合。
-      if (isStar) {
-        matsSet.clear();
-        totalSize = sizeMax = totalMine = popSum = 0;
-        solarMax = windMax = habMax = 0;
-      }
-      const bodyCount = isStar ? Math.max(1, Number(defn.body_count || 0)) : worlds.length;
-
-      out.push({
-        id: aid,
-        seq: art.created_sequence,
-        step: art.created_at_step,
-        kind,
-        rarity: defn.rarity,
-        strength: desc.strength,
-        origin: art.origin,
-        fav: !!art.favorite,
-        seed: desc.seed,
-        body: bodyCount,
-        syskind: defn.system_kind_id,
-        sclass: defn.stellar_class || system.stellar_class,
-        pkind: defn.planet_kind_id,
-        dist: Number(system.distance_milli_light_years || 0),
-        cap: cap * 1000,  // 存档字段为 kW，界面统一按瓦（W）展示
-        size: totalSize,
-        sizeMax,
-        mine: totalMine,
-        pops: popSum,
-        solar: solarMax,
-        wind: windMax,
-        hab: habMax,
-        matCount: matsSet.size,
-        mats: Array.from(matsSet).sort(),
-        sysLabel: system.label,
-        worlds
+      const wsize = Number(c.size_bps || 0);
+      const wpops = Number(c.natural_population_capacity || 0);
+      totalSize += wsize;
+      sizeMax = Math.max(sizeMax, wsize);
+      for (const k in wm) totalMine += wm[k];
+      popSum += wpops;
+      solarMax = Math.max(solarMax, Number(c.solar_output_bps || 0));
+      windMax = Math.max(windMax, Number(c.wind_output_bps || 0));
+      habMax = Math.max(habMax, Number(c.habitability_bps || 0));
+      if (!cap) cap = Math.max(cap, Number(c.stellar_capacity_kw || 0));
+      for (const k in wm) matsSet.add(k);
+      worlds.push({
+        label: w.label, wtype: w.world_type, env: w.environment_id,
+        bodyKind: c.body_kind, site: c.site_kind, canvas: c.canvas_kind,
+        size: wsize, pop: wpops, hab: Number(c.habitability_bps || 0),
+        minePrimary: c.mining_primary_item, mats: wm
       });
     }
+
+    // 恒星档案的本体只有恒星；template.worlds 是生成星系的预览天体，
+    // 不计入档案本体，也不参与档案级聚合。
+    if (isStar) {
+      matsSet.clear();
+      totalSize = sizeMax = totalMine = popSum = 0;
+      solarMax = windMax = habMax = 0;
+    }
+    const bodyCount = isStar ? Math.max(1, Number(defn.body_count || 0)) : worlds.length;
+
+    return {
+      id: aid,
+      seq: art.created_sequence,
+      step: art.created_at_step,
+      kind,
+      rarity: defn.rarity,
+      strength: desc.strength,
+      origin: art.origin,
+      fav: !!art.favorite,
+      seed: desc.seed,
+      body: bodyCount,
+      syskind: defn.system_kind_id,
+      sclass: defn.stellar_class || system.stellar_class,
+      pkind: defn.planet_kind_id,
+      dist: Number(system.distance_milli_light_years || 0),
+      cap: cap * 1000,  // 存档字段为 kW，界面统一按瓦（W）展示
+      size: totalSize,
+      sizeMax,
+      mine: totalMine,
+      pops: popSum,
+      solar: solarMax,
+      wind: windMax,
+      hab: habMax,
+      matCount: matsSet.size,
+      mats: Array.from(matsSet).sort(),
+      sysLabel: system.label,
+      worlds
+    };
+  }
+
+  function buildRowsFromStarsea(cs) {
+    const out = [];
+    const arts = (cs && cs.artifacts) || {};
+    for (const aid in arts) out.push(buildRowFromArtifact(aid, arts[aid]));
     return out;
   }
 
@@ -3099,8 +3101,8 @@
     };
   }
 
-  function applyStarsea(cs, sourceName, saveMeta, worlds) {
-    rows = buildRowsFromStarsea(cs);
+  function applyStarsea(cs, sourceName, saveMeta, worlds, prebuiltRows) {
+    rows = prebuiltRows || buildRowsFromStarsea(cs);
     MATERIALS = materialCounts(rows);
     SYSTEMS = systemCounts(rows);
     WORLD_ROWS = worlds || [];
@@ -3149,8 +3151,212 @@
   }
 
   // 新版存档：外层 { payload(base64), storage }，内层为 brotli 压缩的 JSON。
-  // 浏览器没有内置 Brotli 解码器；较新的 Firefox/Safari 支持
-  // DecompressionStream('brotli')，Chrome 目前会抛 Unsupported compression format。
+  // 浏览器没有内置 Brotli 解码器；这里使用构建时内嵌的 WASM 解码器。
+  // 展开后的完整存档可能远超浏览器字符串上限（V8 约 512 MiB），
+  // 因此大存档走“流式解压 + 字节级提取”，只保留仪表盘需要的子树。
+
+  const B_QUOTE = 0x22, B_BSLASH = 0x5c, B_COMMA = 0x2c, B_COLON = 0x3a;
+  const B_LBRACE = 0x7b, B_RBRACE = 0x7d, B_LBRACK = 0x5b, B_RBRACK = 0x5d;
+  const UTF8 = new TextDecoder("utf-8");
+
+  function JsonByteReader(bytes) {
+    this.b = bytes;
+    this.n = bytes.length;
+    this.i = 0;
+  }
+
+  JsonByteReader.prototype = {
+    skipWS() {
+      const b = this.b, n = this.n;
+      let i = this.i;
+      while (i < n) {
+        const c = b[i];
+        if (c === 32 || c === 9 || c === 10 || c === 13) i++; else break;
+      }
+      this.i = i;
+    },
+    expect(ch) {
+      this.skipWS();
+      if (this.b[this.i] !== ch)
+        throw new Error("JSON 格式错误（偏移 " + this.i + "）");
+      this.i++;
+    },
+    skipString() {
+      const b = this.b, n = this.n;
+      let i = this.i + 1;
+      while (true) {
+        const q = b.indexOf(B_QUOTE, i);
+        if (q < 0 || q >= n) throw new Error("JSON 字符串未结束");
+        // 转义引号不算结束：反斜杠数量必须为偶数
+        let k = q - 1, bs = 0;
+        while (k >= 0 && b[k] === B_BSLASH) { bs++; k--; }
+        if ((bs & 1) === 0) { this.i = q + 1; return; }
+        i = q + 1;
+      }
+    },
+    readString() {
+      this.skipWS();
+      const s = this.i;
+      if (this.b[s] !== B_QUOTE) throw new Error("JSON 键名格式错误");
+      this.skipString();
+      return JSON.parse(UTF8.decode(this.b.subarray(s, this.i)));
+    },
+    skipValue() {
+      const b = this.b, n = this.n;
+      this.skipWS();
+      const c = b[this.i];
+      if (c === B_QUOTE) { this.skipString(); return; }
+      if (c === B_LBRACE || c === B_LBRACK) {
+        let depth = 0, i = this.i;
+        while (i < n) {
+          const ch = b[i];
+          if (ch === B_QUOTE) { this.i = i; this.skipString(); i = this.i; continue; }
+          if (ch === B_LBRACE || ch === B_LBRACK) depth++;
+          else if (ch === B_RBRACE || ch === B_RBRACK) {
+            depth--;
+            if (depth === 0) { i++; break; }
+          }
+          i++;
+        }
+        this.i = i;
+        return;
+      }
+      let i = this.i;
+      while (i < n) {
+        const ch = b[i];
+        if (ch === B_COMMA || ch === B_RBRACE || ch === B_RBRACK) break;
+        i++;
+      }
+      this.i = i;
+    },
+    readValue() {
+      this.skipWS();
+      const s = this.i;
+      this.skipValue();
+      return JSON.parse(UTF8.decode(this.b.subarray(s, this.i)));
+    },
+    forObject(onEntry) {
+      this.expect(B_LBRACE);
+      while (true) {
+        this.skipWS();
+        const c = this.b[this.i];
+        if (c === B_RBRACE) { this.i++; return; }
+        if (c === B_COMMA) { this.i++; continue; }
+        const key = this.readString();
+        this.expect(B_COLON);
+        onEntry(key);
+      }
+    },
+    forArray(onItem) {
+      this.expect(B_LBRACK);
+      while (true) {
+        this.skipWS();
+        const c = this.b[this.i];
+        if (c === B_RBRACK) { this.i++; return; }
+        if (c === B_COMMA) { this.i++; continue; }
+        onItem();
+      }
+    }
+  };
+
+  // 只从展开后的存档里提取仪表盘会用到的字段。大数组/大映射逐项解析，
+  // 避免把 440 MB 的 artifacts 整体变成一个 JS 字符串。
+  function extractFromExpandedBytes(bytes) {
+    const p = new JsonByteReader(bytes);
+    const universe = { worlds: [] };
+    const cs = {};
+    const rows = [];
+    let sawUniverse = false, sawStarsea = false, topStarsea = null;
+
+    p.forObject(function (key) {
+      if (key === "universe") { sawUniverse = true; parseUniverse(); }
+      else if (key === "cosmic_starsea") {
+        sawStarsea = true;
+        parseStarsea();
+        topStarsea = cs;
+      } else p.skipValue();
+    });
+
+    function parseUniverse() {
+      p.forObject(function (key) {
+        switch (key) {
+          case "worlds":
+            p.forArray(function () { universe.worlds.push(p.readValue()); });
+            break;
+          case "cosmic_starsea":
+            sawStarsea = true;
+            parseStarsea();
+            universe.cosmic_starsea = cs;
+            break;
+          case "active_world_id":
+          case "world_seed":
+          case "procedural_expansion":
+          case "star_systems":
+          case "world_notes":
+            universe[key] = p.readValue();
+            break;
+          default:
+            p.skipValue();
+        }
+      });
+    }
+
+    function parseStarsea() {
+      p.forObject(function (key) {
+        if (key === "artifacts") {
+          p.forObject(function (aid) {
+            rows.push(buildRowFromArtifact(aid, p.readValue()));
+          });
+        } else {
+          cs[key] = p.readValue();
+        }
+      });
+    }
+
+    if (!sawStarsea) throw new Error("存档中缺少 cosmic_starsea");
+    p.skipWS();
+    if (p.i !== p.n) throw new Error("存档末尾存在多余数据");
+    return {
+      data: sawUniverse ? { universe: universe } : { cosmic_starsea: topStarsea },
+      rows: rows
+    };
+  }
+
+  // 流式解压：分块送入 WASM，输出写入预分配缓冲区，
+  // 避免一次性把 500+ MB 结果同时留在 WASM 与 JS 堆中。
+  function inflateBrotli(StreamCls, input, expected) {
+    const stream = new StreamCls();
+    const IN_CHUNK = 1 << 19, OUT_HINT = 1 << 20;
+    const empty = new Uint8Array(0);
+    let out = new Uint8Array(expected > 0 ? expected : Math.max(input.length * 16, 1 << 20));
+    let written = 0, inPos = 0, guard = 0;
+    try {
+      while (true) {
+        const chunk = inPos < input.length
+          ? input.subarray(inPos, Math.min(inPos + IN_CHUNK, input.length))
+          : empty;
+        const res = stream.dec(chunk, OUT_HINT);
+        const buf = res.buf, code = res.code, consumed = res.input_offset;
+        if (res.free) res.free();
+        if (written + buf.length > out.length) {
+          const grown = new Uint8Array(Math.max(out.length * 2, written + buf.length));
+          grown.set(out.subarray(0, written));
+          out = grown;
+        }
+        out.set(buf, written);
+        written += buf.length;
+        inPos += consumed;
+        if (code === 1) break; // ResultSuccess
+        if (code === 2 && inPos >= input.length && buf.length === 0)
+          throw new Error("压缩数据意外结束");
+        if (++guard > 200000) throw new Error("解压超出预期长度");
+      }
+    } finally {
+      if (stream.free) stream.free();
+    }
+    return written === out.length ? out : out.subarray(0, written);
+  }
+
   async function expandCompressedSave(data) {
     const algo = String((data.storage && data.storage.algorithm) || "").toLowerCase();
     if (!algo.startsWith("brotli"))
@@ -3162,19 +3368,32 @@
 
     // 模块脚本是延迟执行的；刚打开页面就选文件时等它一下
     if (!window.__brotliReady && document.getElementById("brotliWasm")) {
-      for (let i = 0; i < 20 && !window.__brotliReady; i++)
+      for (let i = 0; i < 200 && !window.__brotliReady; i++)
         await new Promise(r => setTimeout(r, 25));
     }
+
+    const expected = Number((data.storage && data.storage.expanded_length) || 0);
+    let firstError = null;
 
     // 1) 构建时内嵌的 WASM 解码器（离线可用，Chrome/Firefox/Safari 均可）
     if (window.__brotliReady) {
       try {
         const brotli = await window.__brotliReady;
+        if (brotli && brotli.BrotliDecStream) {
+          const out = inflateBrotli(brotli.BrotliDecStream, bytes, expected);
+          const isLarge = expected > 0
+            ? expected > 128 * 1024 * 1024
+            : out.length > 128 * 1024 * 1024;
+          // 大存档：在字节层面只提取所需子树，避免超过 JS 字符串上限
+          if (isLarge) return extractFromExpandedBytes(out);
+          return { data: JSON.parse(UTF8.decode(out)), rows: null };
+        }
         if (brotli && typeof brotli.decompress === "function") {
           const out = brotli.decompress(bytes);
-          return JSON.parse(new TextDecoder("utf-8").decode(out));
+          return { data: JSON.parse(UTF8.decode(out)), rows: null };
         }
       } catch (e) {
+        firstError = e;
         console.warn("内置 Brotli 解码器失败，尝试 DecompressionStream", e);
       }
     }
@@ -3184,13 +3403,15 @@
       try {
         const ds = new DecompressionStream("brotli");
         const text = await new Response(new Blob([bytes]).stream().pipeThrough(ds)).text();
-        return JSON.parse(text);
+        return { data: JSON.parse(text), rows: null };
       } catch (e) {
+        if (!firstError) firstError = e;
         console.warn("DecompressionStream('brotli') 不可用", e);
       }
     }
 
-    throw new Error("Brotli 解码器不可用。请用 "
+    const reason = firstError && firstError.message ? "（" + firstError.message + "）" : "";
+    throw new Error("Brotli 解压/解析失败" + reason + "。请用 "
       + "python src/starsea_parser.py export 导出后载入，"
       + "或运行 python src/build_starsea_dashboard.py -i <存档> 生成数据版");
   }
@@ -3211,16 +3432,19 @@
         rulesVersion: data.rules_version,
         savedAtUtc: data.saved_at_utc
       };
+      let prebuiltRows = null;
       if (data && typeof data.payload === "string" && data.storage) {
         status.textContent = "正在解压 " + file.name + " …";
         await new Promise(resolve => setTimeout(resolve, 30));
-        data = await expandCompressedSave(data);
+        const expanded = await expandCompressedSave(data);
+        data = expanded.data;
+        prebuiltRows = expanded.rows;
       }
       const cs = extractStarsea(data);
       if (!cs) throw new Error("文件中没有 cosmic_starsea 数据");
       const universe = extractUniverse(data);
       const worlds = universe ? buildWorldsFromSave(universe, cs) : [];
-      applyStarsea(cs, file.name, saveMeta, worlds);
+      applyStarsea(cs, file.name, saveMeta, worlds, prebuiltRows);
       status.textContent = "已载入 " + file.name + "（" + fmt(rows.length) + " 个档案）";
     } catch (err) {
       console.error(err);

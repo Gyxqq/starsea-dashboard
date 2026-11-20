@@ -580,13 +580,13 @@ data/m0-slot.json
 - 拖放 `.json` 到页面
 - 接受旧版完整存档或 `src/starsea_parser.py export` 导出的子树
 
-**新版存档（`payload` + `storage`）是 base64 + brotli 压缩的 227 MB JSON**，不是可直接读取的明文。构建时会把 `brotli-dec-wasm`（约 204 KB WASM）内嵌进 HTML，页面按以下顺序解压：
+**新版存档（`payload` + `storage`）是 base64 + brotli 压缩的 JSON**，不是可直接读取的明文。构建时会把 `brotli-dec-wasm`（约 204 KB WASM）内嵌进 HTML，页面按以下顺序解压：
 
-1. 内置 WASM 解码器（Chrome / Firefox / Safari 通用，离线可用）
+1. 内置 WASM 流式解码器（Chrome / Firefox / Safari 通用，离线可用）
 2. 浏览器原生 `DecompressionStream('brotli')`（较新的 Firefox / Safari）
-3. 都不可用时给出提示，并建议用 CLI 导出
+3. 都不可用时给出具体错误，并建议用 CLI 导出
 
-因此 Chrome 现在也能直接载入新版压缩存档。注意解压后是 227 MB JSON，解析会占用较多内存，低配机器建议用 CLI 生成数据版：
+展开后的存档可能非常大（示例存档约 584 MB，其中 `cosmic_starsea.artifacts` 单项 440 MB），超过 V8 约 512 MiB 的字符串上限，不能整体 `JSON.parse`。因此对解压后超过 128 MiB 的存档，页面会在字节层面流式扫描，只提取 `cosmic_starsea`、`worlds` 等仪表盘需要的子树，并逐条解析 artifact，不再生成整份 JSON 字符串。低配机器仍建议用 CLI 生成数据版：
 
 ```bash
 # 生成内嵌数据版（推荐）
@@ -773,7 +773,7 @@ chrome --headless=new --disable-gpu --window-size=1480,1000 \
 
 ### 已知限制
 
-- **浏览器解压新版存档占用内存**：内嵌 WASM 解码器可解压，但 227 MB JSON 的解析在低配机器上可能较慢；CLI 数据版更稳
+- **浏览器解压新版存档占用内存**：内嵌 WASM 解码器可流式解压，大存档（>128 MiB）改为字节级提取，但仍需在内存中保留完整解压结果；CLI 数据版更稳
 - **内嵌数据版单文件较大**：`starsea_dashboard_data.html` 约 11 MB；解码 227 MB JSON 时 Python 峰值内存较高
 - **天体标签重复**：源数据只有 `S000001-P01`…`P07`，档案表身份列使用短档案 id，完整 id 在单元格提示与详情抽屉中
 - **只读**：不修改存档，不做回写
